@@ -4,12 +4,14 @@ const Fs = require("fs");
 const Path = require("path");
 const mkdirp = require("mkdirp");
 const rimraf = require("rimraf");
-const xclap = require("xclap");
+const xclap = require("@xarc/run");
 
 const pkgFile = Path.resolve("package.json");
 let pkgData;
 
-require("electrode-archetype-njs-module-dev")(xclap);
+const moduleDev = require("@xarc/module-dev");
+
+moduleDev.loadTasks({ xrun: xclap });
 
 function readPkg() {
   if (!pkgData) {
