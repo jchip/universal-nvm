@@ -37,25 +37,25 @@ function tmpdir() {
   fi
 }
 
-NODE_JS_ORG="https://nodejs.org"
+VERSIONS_TAB_FILE_URL="https://nodejs.org/dist/index.tab"
 
-function getLtsVersion() {
-    NODE_JS_HTML="$(tmpdir)/nodejs.html"
+function getLtsVersionByTabFile() {
+  TAB_FILE="$(tmpdir)/nodejs.versions.tab"
 
-    fetch $NODE_JS_ORG $NODE_JS_HTML
+  fetch $VERSIONS_TAB_FILE_URL $TAB_FILE
+  local fv
+  fv=$(cut -f1,10 "$TAB_FILE" | tail -n +2 | egrep -v "\t-$" | head -1 | cut -f1 | egrep -o "v\d+\.\d+\.\d+$")
 
-    local fv
-    fv=$(egrep -o "Download[ 0-9\.]+LTS" "$NODE_JS_HTML" | egrep -o "[0-9\.]+")
-
-    if [ -n "$fv" ]; then
-      echo "v$fv"
-    else
-      echo "v12.13.0"
-    fi
+  if [ -n "$fv" ]; then
+    echo "$fv"
+  else
+    echo "v20.12.0"
+  fi
 }
 
-echo "Checking for latest node.js LTS from ${NODE_JS_ORG}"
-DEFAULT_NODE_VERSION=$(getLtsVersion)
+echo "Checking for latest node.js LTS from ${VERSIONS_TAB_FILE_URL}"
+DEFAULT_NODE_VERSION=$(getLtsVersionByTabFile)
+echo "Determined node.js LTS version to be $DEFAULT_NODE_VERSION"
 
 function getOs() {
   uname -s | tr "[:upper:]" "[:lower:]"
