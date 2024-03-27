@@ -1,5 +1,5 @@
 
-NVM_VERSION="1.5.5"
+NVM_VERSION="1.5.6"
 NVM_VERSION_V="v${NVM_VERSION}"
 
 if [ -n "$NVM_TEST" ]; then

@@ -1,3 +1,7 @@
+## 1.5.6 Mar 26, 2024
+
+* fix LTS version detection
+
 ## 1.0.1 June 14, 2019
 
 * Add PowerShell auto install script
