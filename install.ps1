@@ -44,20 +44,19 @@ function Find-Folders {
 
 
 function getLtsVersion() {
-    $nodejsOrg = "https://nodejs.org"
-    $nodejsHtml = "$Env:TMP\nodejs.html"
-    $foundVersion = "v12.13.0"
+    $nodejsVersionsUrl = "https://nodejs.org/dist/index.json"
+    $foundVersion = "v20.12.0"
 
     Try {
-        Invoke-WebRequest $nodejsOrg -OutFile $nodejsHtml
-        $M = Select-String -CaseSensitive -Path $nodejsHtml -Pattern '(\d+\.\d+\.\d+)(?= LTS)'
+        $lts = Invoke-WebRequest "$nodejsVersionsUrl" | ConvertFrom-Json | where { $_.lts }
 
-        $G = $M.Matches.Groups[1]
-        if ($G.Success) {
-            $v = $G.Value
-            if (-not ($v.StartsWith("v"))) {
-                $v = "v" + $v
-            }
+        $v = $lts[0].version
+
+        if (-not ($v.StartsWith("v"))) {
+            $v = "v" + $v
+        }
+
+        if ($v -match "^v\d+\.\d+\.\d+$") {
             $foundVersion = $v
         }
     }
