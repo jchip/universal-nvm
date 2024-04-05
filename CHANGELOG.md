@@ -1,3 +1,7 @@
+## 1.5.7 Apr 5, 2024
+
+* fix: where doesn't work in powershell 5.1
+
 ## 1.5.6 Mar 26, 2024
 
 * fix LTS version detection
