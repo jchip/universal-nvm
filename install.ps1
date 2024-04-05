@@ -42,22 +42,26 @@ function Find-Folders {
     $browse.Dispose()
 }
 
-
 function getLtsVersion() {
     $nodejsVersionsUrl = "https://nodejs.org/dist/index.json"
     $foundVersion = "v20.12.0"
 
     Try {
-        $lts = Invoke-WebRequest "$nodejsVersionsUrl" | ConvertFrom-Json | where { $_.lts }
+        $lts = Invoke-WebRequest "$nodejsVersionsUrl" | ConvertFrom-Json
 
-        $v = $lts[0].version
+        foreach ($q in $lts) {
+            if ($q.lts -ne $false) {
+                $v = $q.version
 
-        if (-not ($v.StartsWith("v"))) {
-            $v = "v" + $v
-        }
+                if (-not ($v.StartsWith("v"))) {
+                    $v = "v" + $v
+                }
 
-        if ($v -match "^v\d+\.\d+\.\d+$") {
-            $foundVersion = $v
+                if ($v -match "^v\d+\.\d+\.\d+$") {
+                    $foundVersion = $v
+                    break
+                }
+            }
         }
     }
     Catch {
