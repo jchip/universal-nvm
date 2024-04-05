@@ -1,7 +1,7 @@
 {
   "name": "@jchip/nvm",
   "description": "nvm: a universal node.js version manager for Windows (no admin) and Unix",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "author": "Tom.Huang <hzlhu.dargon@gmail.com>",
   "contributors": [
     "Joel Chen <joel123@gmail.com>"
