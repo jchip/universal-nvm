@@ -12,21 +12,23 @@ A universal node.js version manager for Windows (no admin) and Unix.
 
 ## Table Of Contents
 
-- [Installing Windows nvm using PowerShell](#installing-windows-nvm-using-powershell)
-  - [Installing from github.com](#installing-from-githubcom)
-  - [Installing from unpkg.com](#installing-from-unpkgcom)
-  - [Installing from jsdelivr.net](#installing-from-jsdelivrnet)
-  - [Windows 7 Updates](#windows-7-updates)
-  - [Troubleshooting](#troubleshooting)
-    - [Running scripts disabled](#running-scripts-disabled)
-    - [No PowerShell](#no-powershell)
-- [Installing Unix nvm](#installing-unix-nvm)
-  - [Installing from github.com](#installing-from-githubcom-1)
-  - [Installing from unpkg.com](#installing-from-unpkgcom-1)
-  - [Installing from jsdelivr.net](#installing-from-jsdelivrnet-1)
-- [Usage](#usage)
-  - [Environments](#environments)
-- [License](#license)
+- [@jchip/nvm](#jchipnvm)
+  - [Table Of Contents](#table-of-contents)
+  - [Installing Windows nvm using PowerShell](#installing-windows-nvm-using-powershell)
+    - [Installing from github.com](#installing-from-githubcom)
+    - [Installing from unpkg.com](#installing-from-unpkgcom)
+    - [Installing from jsdelivr.net](#installing-from-jsdelivrnet)
+    - [Windows 7 Updates](#windows-7-updates)
+    - [Troubleshooting](#troubleshooting)
+      - [Running scripts disabled](#running-scripts-disabled)
+      - [No PowerShell - Manual Install](#no-powershell---manual-install)
+  - [Installing Unix nvm](#installing-unix-nvm)
+    - [Installing from github.com](#installing-from-githubcom-1)
+    - [Installing from unpkg.com](#installing-from-unpkgcom-1)
+    - [Installing from jsdelivr.net](#installing-from-jsdelivrnet-1)
+  - [Usage](#usage)
+    - [Environments](#environments)
+  - [License](#license)
 
 ## Installing Windows nvm using PowerShell
 
@@ -115,9 +117,24 @@ See this [StackOverflow question](https://stackoverflow.com/questions/4037939/po
 
 You need to keep this policy if you want to use `nvm` in PowerShell to switch node.js versions.
 
-#### No PowerShell
+#### No PowerShell - Manual Install
 
-If you absolutely can't have PowerShell, then please submit an issue. I will make a list of manual steps to install this, and if there's interest, then I will make a standalone installer using 7zip.
+If for some reason you absolutely can't have PowerShell or permission to install from it, then you can try to manually install following these steps:
+
+1. Download the package zip file from https://github.com/jchip/nvm/archive/v1.5.8.zip
+   1. Extract this file. You will get a directory `nvm-1.5.8`.
+   2. Move it to your home directory and rename it to `nvm`. For example: `C:\Users\<username>\nvm`
+2. Download the zipfile https://nodejs.org/dist/v20.12.1/node-v20.12.1-win-x64.zip
+   1. Extract `node.exe` from this file to `C:\Users\<username>\nvm`
+3. Open `RegEdit.exe`, in `HKEY_CURRENT_USER/Environment`
+   1. Add the following entries
+      1. `NVM_HOME` -> `C:\Users\<username>\nvm`
+      2. `NVM_LINK` -> `C:\Users\<username>\nvm\nodejs\bin`
+   2. Append the following to the entry `Path`
+      1. `;C:\Users\<username>\nvm\bin;C:\users\<username>\nvm\nodejs\bin`
+4. Open Command Prompt, and run `nvm install lts`, note the version installed, and then `nvm link <version>`.
+
+**_Make sure to replace `<username>` above with your actual user name_**.
 
 ## Installing Unix nvm
 
