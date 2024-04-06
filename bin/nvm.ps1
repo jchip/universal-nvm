@@ -14,6 +14,7 @@ Try {
 }
 Finally {
   Remove-Item Env:\NVM_POWERSHELL
+  Remove-Item Env:\NVM_RUN_ID
 }
 
 $nvmEnv = "$Env:TMP\nvm_env$PID.ps1"
