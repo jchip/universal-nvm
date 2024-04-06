@@ -310,4 +310,7 @@ if ( -not (Test-Path $NVM_LINK)) {
     & nvm.ps1 link $DefaultNodeVersion
 }
 
+& nvm.ps1 init-env
+& ${NVM_HOME}\init-env.cmd
+
 Write-Output "NVM installed, Node.js version $Env:NVM_USE activated."
