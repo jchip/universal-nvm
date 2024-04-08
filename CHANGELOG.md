@@ -1,3 +1,12 @@
+## 1.6.0 Apr 8, 2024
+
+- feat: add init-env and undo-env commands for windows
+- fix: powershell clear run id
+- fix: set run id for windows cmd
+- fix: remove auto exec and let system Path do its job
+- doc: add manual install instructions for windows
+- fix: iconv-lite stub exports null so needle won't use it
+
 ## 1.5.8 Apr 5, 2024
 
 - fix: install gracefully handles unknown version
