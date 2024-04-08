@@ -121,8 +121,8 @@ You need to keep this policy if you want to use `nvm` in PowerShell to switch no
 
 If for some reason you absolutely can't have PowerShell or permission to install from it, then you can try to manually install following these steps:
 
-1. Download the package zip file from https://github.com/jchip/nvm/archive/v1.5.8.zip
-   1. Extract this file to your home directory. You will get a new directory `nvm-1.5.8`.
+1. Download the package zip file from https://github.com/jchip/nvm/archive/v1.6.0.zip
+   1. Extract this file to your home directory. You will get a new directory `nvm-1.6.0`.
    2. Rename it to `nvm`, for example: `C:\Users\<username>\nvm`
 2. Download the zipfile https://nodejs.org/dist/v20.12.1/node-v20.12.1-win-x64.zip
    1. Extract this file to `C:\Users\<username>\nvm`. You will get a new directory `node-v20.12.1-win-x64`

@@ -107,11 +107,14 @@ xclap.load("nvm", {
       replaceLine("install.sh", `NVM_VERSION="${oldVer}"`, `NVM_VERSION="${newVer}"`);
       pkg.version = newVer;
       Fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
-      const regex1 = new RegExp(`\\/v${oldVer.replace(/\./g, "\\.")}\\/`, "g");
-      const regex2 = new RegExp(`@${oldVer.replace(/\./g, "\\.")}\\/`, "g");
+      const oldVerEsc = oldVer.replace(/\./g, "\\.");
+      const regex1 = new RegExp(`\\/v${oldVerEsc}`, "g");
+      const regex2 = new RegExp(`@${oldVerEsc}\\/`, "g");
+      const regex3 = new RegExp(`nvm-${oldVerEsc}`);
       const readme = Fs.readFileSync("README.md", "utf8")
         .replace(regex1, `/v${newVer}/`)
-        .replace(regex2, `@${newVer}/`);
+        .replace(regex2, `@${newVer}/`)
+        .replace(regex3, `nvm-${newVer}`);
       Fs.writeFileSync("README.md", readme);
 
       return xclap.serial([
