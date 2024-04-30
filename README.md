@@ -54,7 +54,7 @@ Retrieve install script from [github.com](https://www.github.com/jchip/nvm) dire
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://raw.githubusercontent.com/jchip/nvm/v1.6.1/install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://raw.githubusercontent.com/jchip/nvm/v1.6.2/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -65,7 +65,7 @@ Retrieve install script from [unpkg.com](https://unpkg.com):
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://unpkg.com/@jchip/nvm@1.6.1/install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://unpkg.com/@jchip/nvm@1.6.2/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -76,7 +76,7 @@ Retrieve install script from [jsdelivr.net](https://www.jsdelivr.com/):
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.1/install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.2/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -121,8 +121,8 @@ You need to keep this policy if you want to use `nvm` in PowerShell to switch no
 
 If for some reason you absolutely can't have PowerShell or permission to install from it, then you can try to manually install following these steps:
 
-1. Download the package zip file from https://github.com/jchip/nvm/archive/v1.6.1/.zip
-   1. Extract this file to your home directory. You will get a new directory `nvm-1.6.1`.
+1. Download the package zip file from https://github.com/jchip/nvm/archive/v1.6.2/.zip
+   1. Extract this file to your home directory. You will get a new directory `nvm-1.6.2`.
    2. Rename it to `nvm`, for example: `C:\Users\<username>\nvm`
 2. Download the zipfile https://nodejs.org/dist/v20.12.1/node-v20.12.1-win-x64.zip
    1. Extract this file to `C:\Users\<username>\nvm`. You will get a new directory `node-v20.12.1-win-x64`
@@ -153,13 +153,13 @@ Retrieve the install script from [github.com](https://www.github.com/jchip/nvm):
 Using cURL and the install script:
 
 ```bash
-NVM_HOME=~/nvm curl -o- https://raw.githubusercontent.com/jchip/nvm/v1.6.1/install.sh | bash
+NVM_HOME=~/nvm curl -o- https://raw.githubusercontent.com/jchip/nvm/v1.6.2/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-NVM_HOME=~/nvm wget -qO- https://raw.githubusercontent.com/jchip/nvm/v1.6.1/install.sh | bash
+NVM_HOME=~/nvm wget -qO- https://raw.githubusercontent.com/jchip/nvm/v1.6.2/install.sh | bash
 ```
 
 ### Installing from unpkg.com
@@ -169,13 +169,13 @@ Retrieve the install script from [unpkg.com](https://unpkg.com):
 Using cURL and the install script:
 
 ```bash
-NVM_HOME=~/nvm curl -o- https://unpkg.com/@jchip/nvm@1.6.1/install.sh | bash
+NVM_HOME=~/nvm curl -o- https://unpkg.com/@jchip/nvm@1.6.2/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-NVM_HOME=~/nvm wget -qO- https://unpkg.com/@jchip/nvm@1.6.1/install.sh | bash
+NVM_HOME=~/nvm wget -qO- https://unpkg.com/@jchip/nvm@1.6.2/install.sh | bash
 ```
 
 ### Installing from jsdelivr.net
@@ -185,13 +185,13 @@ Retrieve the install script from [jsdelivr.net](https://www.jsdelivr.com/):
 Using cURL and the install script:
 
 ```bash
-NVM_HOME=~/nvm curl -o- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.1/install.sh | bash
+NVM_HOME=~/nvm curl -o- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.2/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-NVM_HOME=~/nvm wget -qO- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.1/install.sh | bash
+NVM_HOME=~/nvm wget -qO- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.2/install.sh | bash
 ```
 
 ## Usage
