@@ -1,3 +1,7 @@
+## 1.6.1 Apr 30, 2024
+
+- fix: handle requested version not matching any installed versions
+
 ## 1.6.0 Apr 8, 2024
 
 - feat: add init-env and undo-env commands for windows
