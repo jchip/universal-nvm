@@ -112,7 +112,7 @@ xclap.load("nvm", {
       const regex2 = new RegExp(`@${oldVerEsc}\\/`, "g");
       const regex3 = new RegExp(`nvm-${oldVerEsc}`);
       const readme = Fs.readFileSync("README.md", "utf8")
-        .replace(regex1, `/v${newVer}/`)
+        .replace(regex1, `/v${newVer}`)
         .replace(regex2, `@${newVer}/`)
         .replace(regex3, `nvm-${newVer}`);
       Fs.writeFileSync("README.md", readme);

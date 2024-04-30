@@ -54,7 +54,7 @@ Retrieve install script from [github.com](https://www.github.com/jchip/nvm) dire
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://raw.githubusercontent.com/jchip/nvm/v1.6.1//install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://raw.githubusercontent.com/jchip/nvm/v1.6.1/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -153,13 +153,13 @@ Retrieve the install script from [github.com](https://www.github.com/jchip/nvm):
 Using cURL and the install script:
 
 ```bash
-NVM_HOME=~/nvm curl -o- https://raw.githubusercontent.com/jchip/nvm/v1.6.1//install.sh | bash
+NVM_HOME=~/nvm curl -o- https://raw.githubusercontent.com/jchip/nvm/v1.6.1/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-NVM_HOME=~/nvm wget -qO- https://raw.githubusercontent.com/jchip/nvm/v1.6.1//install.sh | bash
+NVM_HOME=~/nvm wget -qO- https://raw.githubusercontent.com/jchip/nvm/v1.6.1/install.sh | bash
 ```
 
 ### Installing from unpkg.com
