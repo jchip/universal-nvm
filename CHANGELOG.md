@@ -1,3 +1,7 @@
+## 1.6.3 Jun 21, 2024
+
+- fix: force install x64 for version below 16, on ARM and drawin
+
 ## 1.6.2 Apr 30, 2024
 
 - chore: proper link when update README
