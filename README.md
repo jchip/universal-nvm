@@ -200,15 +200,21 @@ NVM_HOME=~/nvm wget -qO- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.6.3/install.s
 Usage: nvm <command> [options]
 
 Commands:
-  nvm install <version>    install the given version of Node.js
-  nvm uninstall <version>  uninstall the given version of Node.js
-  nvm use <version>        use the given version of Node.js in current shell
-  nvm stop                 undo effects of nvm in current shell [aliases: unuse]
-  nvm link <version>       permanently link the version of Node.js as default
-  nvm unlink               permanently unlink the default version
-  nvm ls                   list all the installed Node.js versions
-  nvm ls-remote            list remote versions available for install
-  nvm cleanup              remove stale local caches
+  nvm install <version>      install the given version of Node.js
+  nvm uninstall <version>    uninstall the given version of Node.js
+  nvm use <version>          use the given version of Node.js in current shell
+  nvm stop                   undo effects of nvm in current shell
+                                                                [aliases: unuse]
+  nvm link <version>         permanently link the version of Node.js as default
+  nvm unlink                 permanently unlink the default version
+  nvm ls                     list all the installed Node.js versions
+  nvm ls-remote              list remote versions available for install
+  nvm cleanup                remove stale local caches
+  nvm postinstall [version]
+       Invoke custom post install script for the given version
+  nvm init-env
+       (windows) Generate cmd file to initialize env for nvm
+  nvm undo-env               (windows) Generate cmd file to undo env for nvm
 
 Options:
   --proxy, -p                   Set network proxy URL                   [string]
@@ -219,6 +225,8 @@ Options:
   --help, -?, -h                Show help. Add a command to show its help
                                                                         [string]
 
+Error: No command given
+
 envs:
 
   NVM_PROXY - set proxy URL
@@ -226,9 +234,10 @@ envs:
 
 Examples:
 
-    nvm install 12.8
-    nvm use 12
-    nvm uninstall 12.4
+    nvm install lts
+    nvm install latest
+    nvm use 20
+    nvm uninstall 22.3
 
 doc: https://www.npmjs.com/package/@jchip/nvm
 
