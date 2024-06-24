@@ -1,3 +1,7 @@
+## 1.6.4 Jun 24, 2024
+
+- fix: allow using latest for install version
+
 ## 1.6.3 Jun 21, 2024
 
 - fix: force install x64 for version below 16, on ARM and drawin
