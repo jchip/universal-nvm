@@ -52,7 +52,7 @@ function getLtsVersionByTabFile() {
 
   fetch $VERSIONS_TAB_FILE_URL $TAB_FILE
   local fv
-  fv=$(cut -f1,10 index.tab | tail -n +2 | egrep -v $'\t-$' | head -1 | cut -f1 | egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+$')
+  fv=$(cut -f1,10 "$TAB_FILE" | tail -n +2 | egrep -v $'\t-$' | head -1 | cut -f1 | egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+$')
 
   if [ -n "$fv" ]; then
     echo "$fv"
