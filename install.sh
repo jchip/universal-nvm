@@ -2,6 +2,14 @@
 NVM_VERSION="1.6.4"
 NVM_VERSION_V="v${NVM_VERSION}"
 
+TAR_NEEDS_WILDCARDS_OPT="$(tar --help | grep "\--wildcards")"
+
+if [ -n "$TAR_NEEDS_WILDCARDS_OPT" ]; then
+  TAR_WILDCARDS_OPT="--wildcards"
+else
+  TAR_WILDCARDS_OPT=""
+fi
+
 if [ -n "$NVM_TEST" ]; then
   NVM_TGZ_URL="https://github.com/jchip/nvm/archive/${NVM_VERSION_V}.tar.gz"
 else
@@ -44,7 +52,7 @@ function getLtsVersionByTabFile() {
 
   fetch $VERSIONS_TAB_FILE_URL $TAB_FILE
   local fv
-  fv=$(cut -f1,10 "$TAB_FILE" | tail -n +2 | egrep -v "\t-$" | head -1 | cut -f1 | egrep -o "v\d+\.\d+\.\d+$")
+  fv=$(cut -f1,10 index.tab | tail -n +2 | egrep -v $'\t-$' | head -1 | cut -f1 | egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+$')
 
   if [ -n "$fv" ]; then
     echo "$fv"
@@ -105,7 +113,7 @@ function fetchNodeJS() {
   fi
 
   if [ -f "${destTgzFile}" ]; then
-    tar xzf "${destTgzFile}" --strip=2 --directory "${NVM_HOME}" "*/bin/node"
+    tar ${TAR_WILDCARDS_OPT} -xzf "${destTgzFile}" --strip=2 --directory "${NVM_HOME}" "*/bin/node"
   else
     echo "Unable to fetch ${nodejsBinUrl}"
     exit 1
@@ -135,7 +143,7 @@ function installNvm() {
 */package.json
 EOF
 
-  tar xzf "${nvmDestTgzFile}" --directory="${NVM_HOME}" --strip=1 --files-from="$nvm_files"
+  tar ${TAR_WILDCARDS_OPT} -xzf "${nvmDestTgzFile}" --directory="${NVM_HOME}" --strip=1 --files-from="$nvm_files"
 }
 
 fetchNodeJS "${DEFAULT_NODE_VERSION}"
@@ -186,3 +194,4 @@ setBashRc
 setZshRc
 
 nvm install $DEFAULT_NODE_VERSION
+
