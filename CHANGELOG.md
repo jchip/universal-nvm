@@ -1,3 +1,7 @@
+## 1.7.0 Mar 8, 2025
+
+- feat: use .nvmrc
+
 ## 1.6.4 Jun 24, 2024
 
 - fix: allow using latest for install version
