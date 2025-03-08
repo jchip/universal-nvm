@@ -1,5 +1,5 @@
 
-NVM_VERSION="1.6.4"
+NVM_VERSION="1.7.0"
 NVM_VERSION_V="v${NVM_VERSION}"
 
 TAR_NEEDS_WILDCARDS_OPT="$(tar --help | grep "\--wildcards")"
