@@ -79,7 +79,7 @@ if [ "$1" = "--install-to-user" ]; then
       NVM_LINK_PATH="$NVM_LINK"
     fi
 
-    cat > "$PLIST_FILE" << PLIST_EOF
+    cat > "$PLIST_FILE" << 'PLIST_EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -90,13 +90,23 @@ if [ "$1" = "--install-to-user" ]; then
   <array>
     <string>sh</string>
     <string>-c</string>
-    <string>launchctl setenv PATH "$NVM_BIN_PATH:$NVM_LINK_PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"</string>
+    <string>
+      CURRENT_PATH=$(launchctl getenv PATH 2>/dev/null)
+      if [ -z "$CURRENT_PATH" ]; then
+        CURRENT_PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      fi
+      launchctl setenv PATH "NVM_BIN_PLACEHOLDER:NVM_LINK_PLACEHOLDER:$CURRENT_PATH"
+    </string>
   </array>
   <key>RunAtLoad</key>
   <true/>
 </dict>
 </plist>
 PLIST_EOF
+
+    # Replace placeholders with actual paths
+    sed -i '' "s|NVM_BIN_PLACEHOLDER|$NVM_BIN_PATH|g" "$PLIST_FILE"
+    sed -i '' "s|NVM_LINK_PLACEHOLDER|$NVM_LINK_PATH|g" "$PLIST_FILE"
 
     launchctl unload "$PLIST_FILE" 2>/dev/null
     launchctl load "$PLIST_FILE" 2>/dev/null

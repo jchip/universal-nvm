@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 NVM_VERSION="1.8.0"
 NVM_VERSION_V="v${NVM_VERSION}"
@@ -22,13 +23,13 @@ fi
 
 function fetch() {
   curl=$(which curl)
-  if [ "$?" == "0" ]; then
+  if [ "$?" = "0" ]; then
     curl --fail -L $1 -o $2
     return $?
   fi
 
   wget=$(which wget)
-  if [ "$?" == "0" ]; then
+  if [ "$?" = "0" ]; then
     wget "$1" --output-document="$2"
     return $?
   fi
