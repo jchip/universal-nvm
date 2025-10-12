@@ -144,6 +144,11 @@ function installNvm() {
 EOF
 
   tar ${TAR_WILDCARDS_OPT} -xzf "${nvmDestTgzFile}" --directory="${NVM_HOME}" --strip=1 --files-from="$nvm_files"
+
+  # Ensure nvx has execute permissions
+  if [ -f "${NVM_HOME}/bin/nvx" ]; then
+    chmod +x "${NVM_HOME}/bin/nvx"
+  fi
 }
 
 fetchNodeJS "${DEFAULT_NODE_VERSION}"

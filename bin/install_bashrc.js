@@ -29,6 +29,7 @@ const commands = [
   `  export NVM_LINK="${varNvmLink}"`,
   mirrorEnv,
   `  source "\$\{NVM_SH}"`,
+  `  alias nvx="\$\{NVM_HOME}/bin/nvx"`,
   `else`,
   `  unset NVM_HOME`,
   `  NVM_ERROR="\$\{NVM_SH} is not valid"`,

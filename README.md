@@ -28,6 +28,12 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Installing from jsdelivr.net](#installing-from-jsdelivrnet-1)
   - [Usage](#usage)
     - [Environments](#environments)
+  - [nvx - Execute with local node_modules](#nvx---execute-with-local-node_modules)
+    - [Basic Usage](#basic-usage)
+    - [Show Help](#show-help)
+    - [Installing to PATH (macOS/Linux only)](#installing-to-path-macoslinux-only)
+      - [Install to User PATH (recommended)](#install-to-user-path-recommended)
+      - [Install to System PATH (all users)](#install-to-system-path-all-users)
   - [License](#license)
 
 ## Installing Windows nvm using PowerShell
@@ -251,6 +257,71 @@ These env flags can be set:
 | ---------------- | -------------- | ------------------------------------------- |
 | `NVM_PROXY`      | string         | An URL to a network proxy                   |
 | `NVM_VERIFY_SSL` | `true`/`false` | turn on/off node.js verify SSL certificates |
+
+## nvx - Execute with local node_modules
+
+The `nvx` command allows you to run commands from your local `node_modules/.bin` directory without needing to specify the full path.
+
+Unlike `npx`, which can fetch and execute packages from remote npm registry, `nvx` is simpler and only runs locally installed packages. This makes it faster and more predictable for running project-specific tools.
+
+### Basic Usage
+
+```bash
+# Run eslint from local node_modules
+nvx eslint src/
+
+# Run prettier from local node_modules
+nvx prettier --write .
+
+# Run any locally installed CLI tool
+nvx jest --watch
+```
+
+### Show Help
+
+```bash
+nvx --help
+# or
+nvx -h
+```
+
+### Installing to PATH (macOS/Linux only)
+
+On macOS and Linux, you can optionally add the nvm bin directory to your system PATH to make nvm commands available in GUI applications (like VS Code).
+
+#### Install to User PATH (recommended)
+
+This adds nvm to your user's PATH. Works with GUI applications and doesn't require sudo:
+
+**macOS:**
+```bash
+nvx --install-to-user
+# Log out and log back in for changes to take effect
+```
+
+**Linux:**
+```bash
+nvx --install-to-user
+# Log out and log back in for changes to take effect
+```
+
+#### Install to System PATH (all users)
+
+This adds nvm to the system-wide PATH for all users. Requires sudo:
+
+**macOS:**
+```bash
+sudo nvx --install-to-system
+# Restart your terminal for changes to take effect
+```
+
+**Linux:**
+```bash
+sudo nvx --install-to-system
+# Log out and log back in for changes to take effect
+```
+
+**Note for Windows users:** On Windows, the nvm bin directory is automatically added to your PATH during installation, so these commands are not needed.
 
 ## License
 

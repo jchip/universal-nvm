@@ -5,7 +5,7 @@ $pkg:
  dep:
   chalker: ^1.2.0
   extract-zip: ^2.0.1
-  fd-slicer: jchip/node-fd-slicer
+  fd-slicer: 'github:jchip/node-fd-slicer'
   lodash: ^4.17.20
   mkdirp: ^0.5.6
   needle: ^3.2.0
@@ -2261,7 +2261,7 @@ color-convert:
   dependencies:
    color-name: 1.1.3
 color-name:
- _latest: 2.0.0
+ _latest: 2.0.2
  _:
   1.1.3: 1.1.3
   ~1.1.4: 1.1.4
@@ -2346,16 +2346,16 @@ cross-spawn:
    shebang-command: ^2.0.0
    which: ^2.0.1
 debug:
- _latest: 4.3.4
+ _latest: 4.4.3
  _:
   4.3.3: 4.3.3
   ^3.2.6: 3.2.7
-  '^4.1.0,^4.1.1': 4.3.4
- 4.3.4:
-  $: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
-  _: 'https://registry.npmjs.org/debug/-/debug-4.3.4.tgz'
+  '^4.1.0,^4.1.1': 4.4.3
+ 4.4.3:
+  $: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==
+  _: 'https://registry.npmjs.org/debug/-/debug-4.4.3.tgz'
   dependencies:
-   ms: 2.1.2
+   ms: ^2.1.3
  4.3.3:
   $: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==
   _: 'https://registry.npmjs.org/debug/-/debug-4.3.3.tgz'
@@ -2582,11 +2582,11 @@ fastest-levenshtein:
   _: 'https://registry.npmjs.org/fastest-levenshtein/-/fastest-levenshtein-1.0.16.tgz'
 fd-slicer:
  _:
-  'jchip/node-fd-slicer,~1.1.0': 1.1.0
+  'github:jchip/node-fd-slicer,~1.1.0': 1.1.0
  1.1.0:
   top: 1
-  $: sha512-UrtZ+WziU95dtZ8lWs69CdLj1Ww/m6UGaqKkKEgrWaV/qfXgZX85c/NOAQI1rFH6ryp8fBzCnUlDFUU1BY7TWg==
-  _: '~url-spec~{"urlType":"github","semver":"jchip/node-fd-slicer","_resolved":"github:jchip/node-fd-slicer#607e480e02f424501609b7ccd751f0781fa5f371"}'
+  $: sha512-FVy0YiQoBUcF9E6HihfWHXdmlG2AvHYVXOn6UjqOW3M/awvz4U0KRQdstBQEUp1zzH1UILZ0XMzJGLeZ6hYenw==
+  _: '~url-spec~{"urlType":"github","semver":"github:jchip/node-fd-slicer","_resolved":"github:jchip/node-fd-slicer#607e480e02f424501609b7ccd751f0781fa5f371"}'
   dependencies:
    pend: ~1.2.0
 fill-range:
@@ -2734,7 +2734,7 @@ get-stream:
   dependencies:
    pump: ^3.0.0
 glob:
- _latest: 10.3.10
+ _latest: 11.0.3
  _:
   7.2.0: 7.2.0
   '^7.0.0,^7.1.3,^7.1.4,^7.1.6': 7.2.3
@@ -2748,6 +2748,7 @@ glob:
    minimatch: ^3.1.1
    once: ^1.3.0
    path-is-absolute: ^1.0.0
+  deprecated: 'Glob versions prior to v9 are no longer supported'
  7.2.0:
   $: sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==
   _: 'https://registry.npmjs.org/glob/-/glob-7.2.0.tgz'
@@ -2758,6 +2759,7 @@ glob:
    minimatch: ^3.0.4
    once: ^1.3.0
    path-is-absolute: ^1.0.0
+  deprecated: 'Glob versions prior to v9 are no longer supported'
 glob-parent:
  _latest: 6.0.2
  _:
@@ -3479,7 +3481,7 @@ ms:
  _latest: 2.1.3
  _:
   2.1.2: 2.1.2
-  '2.1.3,^2.1.1': 2.1.3
+  '2.1.3,^2.1.1,^2.1.3': 2.1.3
  2.1.3:
   $: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
   _: 'https://registry.npmjs.org/ms/-/ms-2.1.3.tgz'
@@ -4090,13 +4092,13 @@ semver:
   $: sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
   _: 'https://registry.npmjs.org/semver/-/semver-5.7.1.tgz'
 serialize-javascript:
- _latest: 6.0.1
+ _latest: 7.0.0
  _:
   6.0.0: 6.0.0
-  ^6.0.1: 6.0.1
- 6.0.1:
-  $: sha512-owoXEFjWRllis8/M1Q+Cw5k8ZH40e3zhp/ovX+Xr/vi1qj6QesbyXXViFbpNvWvPNAD62SutwEXavefrLJWj7w==
-  _: 'https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-6.0.1.tgz'
+  ^6.0.1: 6.0.2
+ 6.0.2:
+  $: sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==
+  _: 'https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-6.0.2.tgz'
   dependencies:
    randombytes: ^2.1.0
  6.0.0:
