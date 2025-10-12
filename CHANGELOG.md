@@ -1,3 +1,9 @@
+## 1.8.0 Oct 12, 2025
+
+- feat: add `nvx` command to run local node_modules binaries
+- feat: add `nvx --install-to-user` for macOS/Linux (GUI app support, no sudo)
+- feat: add `nvx --install-to-system` for macOS/Linux (system-wide, requires sudo)
+
 ## 1.7.0 Mar 8, 2025
 
 - feat: use .nvmrc
