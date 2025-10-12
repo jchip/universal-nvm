@@ -34,6 +34,9 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Installing to PATH (macOS/Linux only)](#installing-to-path-macoslinux-only)
       - [Install to User PATH (recommended)](#install-to-user-path-recommended)
       - [Install to System PATH (all users)](#install-to-system-path-all-users)
+  - [Contributing and Release](#contributing-and-release)
+    - [Development](#development)
+    - [Release Process](#release-process)
   - [License](#license)
 
 ## Installing Windows nvm using PowerShell
@@ -322,6 +325,40 @@ sudo nvx --install-to-system
 ```
 
 **Note for Windows users:** On Windows, the nvm bin directory is automatically added to your PATH during installation, so these commands are not needed.
+
+## Contributing and Release
+
+### Development
+
+1. Clone the repository
+2. Install [fyn](https://www.npmjs.com/package/fyn) globally: `npm install -g fyn`
+3. Install dependencies: `fyn install`
+4. Make your changes
+5. Test your changes on the target platform(s)
+
+### Release Process
+
+This project uses `xrun` for versioning and releasing. **Do not use `npm version` or `npm publish`** directly.
+
+1. **Update CHANGELOG.md** - Add a new entry at the top with the version and date:
+   ```markdown
+   ## X.Y.Z MMM DD, YYYY
+
+   - feat: description of new feature
+   - fix: description of bug fix
+   ```
+
+2. **Bump version** - Choose the appropriate version bump:
+   ```bash
+   xrun version --patch   # Bug fixes (1.7.0 -> 1.7.1)
+   xrun version --minor   # New features (1.7.0 -> 1.8.0)
+   xrun version --major   # Breaking changes (1.7.0 -> 2.0.0)
+   ```
+
+3. **Release** - Publish to npm:
+   ```bash
+   xrun release
+   ```
 
 ## License
 
