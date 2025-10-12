@@ -39,26 +39,58 @@ if [ "$1" = "--install-to-user" ]; then
   OS_TYPE="$(uname)"
 
   if [ "$OS_TYPE" = "Darwin" ]; then
-    # macOS: Create a LaunchAgent to set PATH for all user processes including GUI
-    LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-    PLIST_FILE="$LAUNCH_AGENTS_DIR/com.uninvm.path.plist"
+    # macOS: Add to shell profile files for terminal and update launchctl for GUI apps
 
-    # Create LaunchAgents directory if it doesn't exist
+    # Find node executable
+    NODE_EXE="$DETECTED_NVM_HOME/node"
+    if [ ! -f "$NODE_EXE" ]; then
+      echo "Error: Node.js executable not found at $NODE_EXE" >&2
+      echo "Please install Node.js first with: nvm install lts" >&2
+      exit 1
+    fi
+
+    # Update shell profiles using install_bashrc.js
+    INSTALL_SCRIPT="$DETECTED_NVM_HOME/bin/install_bashrc.js"
+    if [ -f "$INSTALL_SCRIPT" ]; then
+      # Update .bashrc or .bash_profile
+      if [ -f "$HOME/.bashrc" ]; then
+        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.bashrc" bash >/dev/null 2>&1
+      elif [ -f "$HOME/.bash_profile" ]; then
+        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.bash_profile" bash >/dev/null 2>&1
+      fi
+
+      # Update .zshrc
+      if [ -f "$HOME/.zshrc" ]; then
+        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.zshrc" zsh >/dev/null 2>&1
+      fi
+    fi
+
+    # Update launchctl config for current session and GUI apps
+    launchctl setenv PATH "$NVM_BIN_PATH:$(launchctl getenv PATH 2>/dev/null || echo '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin')"
+
+    # Create LaunchAgent for persistent GUI app support across reboots
+    LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
+    PLIST_FILE="$LAUNCH_AGENTS_DIR/com.jchip.universal-nvm.plist"
     mkdir -p "$LAUNCH_AGENTS_DIR" 2>/dev/null
 
-    # Create the LaunchAgent plist
+    # Get NVM_LINK path (linked nodejs version)
+    NVM_LINK_PATH="${DETECTED_NVM_HOME}/nodejs/bin"
+    if [ -n "$NVM_LINK" ]; then
+      NVM_LINK_PATH="$NVM_LINK"
+    fi
+
     cat > "$PLIST_FILE" << PLIST_EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.uninvm.path</string>
+  <string>com.jchip.universal-nvm</string>
   <key>ProgramArguments</key>
   <array>
     <string>sh</string>
     <string>-c</string>
-    <string>launchctl setenv PATH "$NVM_BIN_PATH:\$PATH"</string>
+    <string>launchctl setenv PATH "$NVM_BIN_PATH:$NVM_LINK_PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
@@ -66,26 +98,29 @@ if [ "$1" = "--install-to-user" ]; then
 </plist>
 PLIST_EOF
 
-    if [ $? -eq 0 ]; then
-      # Load the LaunchAgent
-      launchctl unload "$PLIST_FILE" 2>/dev/null
-      launchctl load "$PLIST_FILE" 2>/dev/null
+    launchctl unload "$PLIST_FILE" 2>/dev/null
+    launchctl load "$PLIST_FILE" 2>/dev/null
 
-      echo "Successfully configured user PATH"
-      echo "Created LaunchAgent at $PLIST_FILE"
-      echo "Configured to add $NVM_BIN_PATH to PATH on login"
-      echo ""
-      echo "Log out and log back in for changes to take effect"
-      exit 0
-    else
-      echo "Error: Failed to create LaunchAgent" >&2
-      exit 1
-    fi
+    echo "Successfully configured user PATH"
+    echo "Added $NVM_BIN_PATH to:"
+    echo "  - Current session (immediate effect)"
+    echo "  - Shell profiles (terminal sessions)"
+    echo "  - LaunchAgent at $PLIST_FILE (GUI apps after login)"
+    echo ""
+    echo "The PATH is now active for new terminal windows and current GUI apps."
+    echo "For full GUI app support, log out and log back in."
+    exit 0
 
   elif [ "$OS_TYPE" = "Linux" ]; then
     # Linux: Use systemd user environment.d
     SYSTEMD_ENV_DIR="$HOME/.config/environment.d"
-    ENV_FILE="$SYSTEMD_ENV_DIR/10-uninvm.conf"
+    ENV_FILE="$SYSTEMD_ENV_DIR/10-jchip-universal-nvm.conf"
+
+    # Get NVM_LINK path (linked nodejs version)
+    NVM_LINK_PATH="${DETECTED_NVM_HOME}/nodejs/bin"
+    if [ -n "$NVM_LINK" ]; then
+      NVM_LINK_PATH="$NVM_LINK"
+    fi
 
     # Check if already installed
     if [ -f "$ENV_FILE" ] && grep -q "$NVM_BIN_PATH" "$ENV_FILE" 2>/dev/null; then
@@ -96,16 +131,19 @@ PLIST_EOF
     # Create directory if it doesn't exist
     mkdir -p "$SYSTEMD_ENV_DIR" 2>/dev/null
 
-    # Create the environment file
+    # Create the environment file with both paths
     cat > "$ENV_FILE" << ENV_EOF
-# Add uni-nvm bin directory to PATH
-PATH=$NVM_BIN_PATH:\$PATH
+# universal-nvm environment configuration
+# Adds nvm/bin and nodejs/bin to PATH for GUI applications
+PATH=$NVM_BIN_PATH:$NVM_LINK_PATH:\$PATH
 ENV_EOF
 
     if [ $? -eq 0 ]; then
       echo "Successfully configured user PATH"
       echo "Created environment file at $ENV_FILE"
-      echo "Configured to add $NVM_BIN_PATH to PATH on login"
+      echo "Added paths:"
+      echo "  - $NVM_BIN_PATH (nvm commands)"
+      echo "  - $NVM_LINK_PATH (node/npm)"
       echo ""
       echo "Log out and log back in for changes to take effect"
       exit 0

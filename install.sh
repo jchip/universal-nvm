@@ -187,11 +187,19 @@ function setZshRc() {
     ZD=${ZDOTDIR}
   fi
   ZSH_RC="${ZD}/.zshrc"
+  ZSH_ENV="${ZD}/.zshenv"
 
   if [ ! -f "${ZSH_RC}" ]; then
     touch "${ZSH_RC}"
   fi
 
+  if [ ! -f "${ZSH_ENV}" ]; then
+    touch "${ZSH_ENV}"
+  fi
+
+  # Add to both .zshenv (for non-interactive shells) and .zshrc (for interactive shells)
+  # The guard in the script prevents double initialization
+  ${NVM_NODE_BIN} ${NVM_HOME}/bin/install_bashrc.js "${ZSH_ENV}" zsh
   ${NVM_NODE_BIN} ${NVM_HOME}/bin/install_bashrc.js "${ZSH_RC}" zsh
 }
 
@@ -199,4 +207,9 @@ setBashRc
 setZshRc
 
 nvm install $DEFAULT_NODE_VERSION
+
+# Run nvx --install-to-user to set up LaunchAgent on macOS
+if [ -f "${NVM_HOME}/bin/nvx" ]; then
+  "${NVM_HOME}/bin/nvx" --install-to-user 2>/dev/null || true
+fi
 

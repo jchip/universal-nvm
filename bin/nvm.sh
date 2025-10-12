@@ -1,4 +1,4 @@
-function nvm() {
+function _jchip_universal_nvm() {
   if [ -z "$NVM_HOME" ]; then
     NVM_HOME=~/nvm
   fi
@@ -43,6 +43,11 @@ function nvm() {
   fi
 
   return 0
+}
+
+# Create nvm function that calls the internal function
+function nvm() {
+  _jchip_universal_nvm "$@"
 }
 
 # If a version is linked, then automatically add it to PATH

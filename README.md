@@ -26,6 +26,9 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Installing from github.com](#installing-from-githubcom-1)
     - [Installing from unpkg.com](#installing-from-unpkgcom-1)
     - [Installing from jsdelivr.net](#installing-from-jsdelivrnet-1)
+    - [Shell Initialization on Unix](#shell-initialization-on-unix)
+      - [Zsh (macOS default)](#zsh-macos-default)
+      - [Bash](#bash)
   - [Usage](#usage)
     - [Environments](#environments)
   - [nvx - Execute with local node_modules](#nvx---execute-with-local-node_modules)
@@ -34,6 +37,7 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Installing to PATH (macOS/Linux only)](#installing-to-path-macoslinux-only)
       - [Install to User PATH (recommended)](#install-to-user-path-recommended)
       - [Install to System PATH (all users)](#install-to-system-path-all-users)
+      - [How it Works](#how-it-works)
   - [Contributing and Release](#contributing-and-release)
     - [Development](#development)
     - [Release Process](#release-process)
@@ -203,6 +207,60 @@ or wget:
 NVM_HOME=~/nvm wget -qO- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.8.0/install.sh | bash
 ```
 
+### Shell Initialization on Unix
+
+The nvm installation automatically updates your shell profile files to initialize nvm. The behavior differs between zsh and bash:
+
+#### Zsh (macOS default)
+
+For zsh users, the installer updates both `.zshenv` and `.zshrc`:
+
+- **`.zshenv`**: Sourced for ALL shells (interactive and non-interactive)
+- **`.zshrc`**: Sourced for interactive shells only
+
+This means:
+- ✅ Terminal sessions have nvm available
+- ✅ Non-interactive scripts have nvm available
+- ✅ GUI applications (like VS Code) have nvm available (when combined with `nvx --install-to-user`)
+
+#### Bash
+
+For bash users, the installer updates `.bashrc` or `.bash_profile`:
+
+- **`.bash_profile`**: Sourced for login shells (macOS default)
+- **`.bashrc`**: Sourced for interactive non-login shells (Linux default)
+- **Non-interactive shells**: NOT sourced by default
+
+This means:
+- ✅ Terminal sessions have nvm available
+- ❌ Non-interactive bash scripts do NOT have nvm by default
+
+**Using nvm in bash scripts:**
+
+If you need nvm in a bash script, you have three options:
+
+1. **Source the profile explicitly** in your script:
+   ```bash
+   #!/bin/bash
+   source ~/.bashrc
+   node --version
+   ```
+
+2. **Use a login shell** with the shebang:
+   ```bash
+   #!/bin/bash -l
+   node --version
+   ```
+
+3. **Set BASH_ENV** to automatically source a file for non-interactive shells:
+   ```bash
+   export BASH_ENV=~/.bashrc
+   ```
+
+   You can add this to your `.bash_profile` to make it permanent, but be aware this will affect all bash scripts system-wide.
+
+**Note:** This is standard bash behavior by design - non-interactive shells have a minimal environment for performance and predictability.
+
 ## Usage
 
 ```
@@ -324,7 +382,37 @@ sudo nvx --install-to-system
 # Log out and log back in for changes to take effect
 ```
 
-**Note for Windows users:** On Windows, the nvm bin directory is automatically added to your PATH during installation, so these commands are not needed.
+**Note for Windows users:** On Windows, the installation script automatically adds both `%NVM_HOME%\bin` and `%NVM_LINK%` to your user PATH in the Windows registry. This makes nvm, node, and npm immediately available to all applications (terminal, GUI apps like VS Code, etc.) without needing to run any additional commands. The `nvx --install-to-user` and `nvx --install-to-system` commands are therefore not needed on Windows.
+
+#### How it Works
+
+The `nvx --install-to-user` command uses platform-specific mechanisms to make nvm available to GUI applications:
+
+**macOS:**
+
+Creates a LaunchAgent at `~/Library/LaunchAgents/com.jchip.universal-nvm.plist` that runs at login to set environment variables for the user session. This makes nvm available to:
+- All GUI applications (VS Code, editors, etc.)
+- Terminal windows
+- Background processes
+
+The LaunchAgent adds both paths to your environment:
+- `~/nvm/bin` - nvm commands (nvm, nvx)
+- `~/nvm/nodejs/bin` - Node.js executables (node, npm) - only available after running `nvm link <version>`
+
+**Linux:**
+
+Creates a systemd user environment file at `~/.config/environment.d/10-jchip-universal-nvm.conf`. This file is read by systemd-based desktop environments at login and makes nvm available to:
+- All GUI applications launched from the desktop
+- Applications started by systemd user services
+- Any process in your user session
+
+The environment file adds both paths:
+- `~/nvm/bin` - nvm commands (nvm, nvx)
+- `~/nvm/nodejs/bin` - Node.js executables (node, npm) - only available after running `nvm link <version>`
+
+**Important:** The `~/nvm/nodejs/bin` directory is a symlink created by `nvm link <version>` that points to the default Node.js version. You must run `nvm link` to set up a default Node.js version before GUI applications can access node and npm. The install script does this automatically.
+
+**Note:** On Linux systems not using systemd, this feature may not work. In that case, you can manually add the paths to your `~/.profile` or consult your distribution's documentation for setting user environment variables.
 
 ## Contributing and Release
 
