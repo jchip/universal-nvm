@@ -34,7 +34,16 @@ if (Test-Path ".\node_modules\.bin" -PathType Container) {
 
 # Execute the command with arguments
 $command = $args[0]
-$commandArgs = $args[1..($args.Count - 1)]
+$commandArgs = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { @() }
+
+# Try .cmd extension if command doesn't have an extension
+if ($command -notmatch '\.' ) {
+    $cmdVersion = Get-Command "${command}.cmd" -ErrorAction SilentlyContinue
+    if ($cmdVersion) {
+        # Use the full path from Get-Command
+        $command = $cmdVersion.Source
+    }
+}
 
 if ($commandArgs) {
     & $command @commandArgs
