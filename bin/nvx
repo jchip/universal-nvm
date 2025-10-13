@@ -95,7 +95,16 @@ if [ "$1" = "--install-to-user" ]; then
       if [ -z "$CURRENT_PATH" ]; then
         CURRENT_PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       fi
-      launchctl setenv PATH "NVM_BIN_PLACEHOLDER:NVM_LINK_PLACEHOLDER:$CURRENT_PATH"
+      # Only add nvm paths if not already present
+      case ":$CURRENT_PATH:" in
+        *:NVM_BIN_PLACEHOLDER:*) ;;
+        *) CURRENT_PATH="NVM_BIN_PLACEHOLDER:$CURRENT_PATH" ;;
+      esac
+      case ":$CURRENT_PATH:" in
+        *:NVM_LINK_PLACEHOLDER:*) ;;
+        *) CURRENT_PATH="NVM_LINK_PLACEHOLDER:$CURRENT_PATH" ;;
+      esac
+      launchctl setenv PATH "$CURRENT_PATH"
     </string>
   </array>
   <key>RunAtLoad</key>
