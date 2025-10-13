@@ -1344,17 +1344,17 @@ $pkg:
  0.5.7:
   $: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
   _: 'https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz'
-'@esbuild/win32-x64':
+'@esbuild/darwin-arm64':
  _latest: 0.25.10
  _:
   0.25.10: 0.25.10
  0.25.10:
-  $: sha512-9KpxSVFCu0iK1owoez6aC/s/EdUQLDN3adTxGCqxMVhrPDj6bt5dbrHDXUuq+Bs2vATFBBrQS5vdQ/Ed2P+nbw==
-  _: 'https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.10.tgz'
+  $: sha512-JC74bdXcQEpW9KkV326WpZZjLguSZ3DfS8wrrvPMHgQOIEIG/sPXEN/V8IssoJhbefLRcRqw6RQH2NnpdprtMA==
+  _: 'https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.25.10.tgz'
   os:
-   - win32
+   - darwin
   cpu:
-   - x64
+   - arm64
 '@istanbuljs/load-nyc-config':
  _latest: 1.1.0
  _:
@@ -2752,6 +2752,15 @@ fs.realpath:
  1.0.0:
   $: sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
   _: 'https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz'
+fsevents:
+ _latest: 2.3.3
+ _:
+  '~2.3.2,~2.3.3': 2.3.3
+ 2.3.3:
+  $: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
+  _: 'https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz'
+  os:
+   - darwin
 gensync:
  _latest: 1.0.0-beta.2
  _:
