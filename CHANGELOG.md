@@ -1,3 +1,8 @@
+## 1.8.4 Oct 13, 2025
+
+- fix: support gitbash on windows
+- fix: nvx.ps1 improvements
+
 ## 1.8.3 Oct 13, 2025
 
 - fix: registry PATH parsing to handle spaces
