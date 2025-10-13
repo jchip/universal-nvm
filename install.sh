@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NVM_VERSION="1.8.2"
+NVM_VERSION="1.8.3"
 NVM_VERSION_V="v${NVM_VERSION}"
 
 TAR_NEEDS_WILDCARDS_OPT="$(tar --help | grep "\--wildcards")"
