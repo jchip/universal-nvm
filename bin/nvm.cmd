@@ -2,6 +2,7 @@
 
 SETLOCAL
 
+SET NVM_CMD=true
 SET NVM_RUN_ID=1
 
 SET "NODE_EXE=%~dp0\..\node.exe"
@@ -10,7 +11,7 @@ IF NOT EXIST "%NODE_EXE%" (
   SET "NODE_EXE=node"
 )
 
-"%NODE_EXE%" "%~dp0\..\dist\nvm.js" %1 %2 %3 %4
+"%NODE_EXE%" "%~dp0\..\dist\nvm.js" --shell=cmd %1 %2 %3 %4
 
 ENDLOCAL
 

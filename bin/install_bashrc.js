@@ -9,10 +9,17 @@ const homeDir = os.homedir();
 const nvmHome = process.env.NVM_HOME || `${homeDir}/nvm`;
 const nvmLink = process.env.NVM_LINK || `${nvmHome}/nodejs/bin`;
 
-const homeAlias = process.env.HOME ? "${HOME}" : "~";
+// Use HOME variable (works on Unix and Git Bash on Windows)
+const homeAlias = "${HOME}";
 
-const varNvmHome = nvmHome.replace(homeDir, homeAlias);
-const varNvmLink = nvmLink.replace(homeDir, homeAlias);
+// Normalize paths to use forward slashes for comparison
+const normalizeHomePath = (p) => p.replace(/\\/g, "/");
+const normalizedHomeDir = normalizeHomePath(homeDir);
+const normalizedNvmHome = normalizeHomePath(nvmHome);
+const normalizedNvmLink = normalizeHomePath(nvmLink);
+
+const varNvmHome = normalizedNvmHome.replace(normalizedHomeDir, homeAlias);
+const varNvmLink = normalizedNvmLink.replace(normalizedHomeDir, homeAlias);
 
 const shellName = process.argv[3] || "bash";
 

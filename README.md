@@ -151,6 +151,23 @@ If for some reason you absolutely can't have PowerShell or permission to install
 
 **_Make sure to replace `<username>` above with your actual user name_**.
 
+### Using Git Bash on Windows
+
+If you want to use nvm with Git Bash after installing on Windows via PowerShell:
+
+1. First install nvm using PowerShell (see instructions above)
+2. Open Git Bash
+3. Run the setup script:
+   ```bash
+   $NVM_HOME/bin/nvm-setup.sh
+   ```
+4. Restart Git Bash or run:
+   ```bash
+   source ~/.bashrc
+   ```
+
+Now you can use `nvm` commands in Git Bash just like on Unix systems.
+
 ## Installing Unix nvm
 
 Because this is implemented in node.js, it happens to work on Unix also. It just need a different install script using bash.

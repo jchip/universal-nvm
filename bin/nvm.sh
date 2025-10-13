@@ -22,7 +22,7 @@ function _jchip_universal_nvm() {
     export NVM_TMPDIR=$TMPDIR
   fi
 
-  $NVM_NODE "$NVM_HOME/dist/nvm.js" $*
+  $NVM_NODE "$NVM_HOME/dist/nvm.js" --shell=bash $*
 
   local TMP_ENV_FILE="$TMPDIR/nvm_env${NVM_RUN_ID}.sh"
 
