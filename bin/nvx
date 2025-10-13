@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # nvx - Execute commands with local node_modules/.bin in PATH
 
@@ -95,16 +95,7 @@ if [ "$1" = "--install-to-user" ]; then
       if [ -z "$CURRENT_PATH" ]; then
         CURRENT_PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       fi
-      # Only add nvm paths if not already present
-      case ":$CURRENT_PATH:" in
-        *:NVM_BIN_PLACEHOLDER:*) ;;
-        *) CURRENT_PATH="NVM_BIN_PLACEHOLDER:$CURRENT_PATH" ;;
-      esac
-      case ":$CURRENT_PATH:" in
-        *:NVM_LINK_PLACEHOLDER:*) ;;
-        *) CURRENT_PATH="NVM_LINK_PLACEHOLDER:$CURRENT_PATH" ;;
-      esac
-      launchctl setenv PATH "$CURRENT_PATH"
+      launchctl setenv PATH "NVM_BIN_PLACEHOLDER:NVM_LINK_PLACEHOLDER:$CURRENT_PATH"
     </string>
   </array>
   <key>RunAtLoad</key>
@@ -326,4 +317,37 @@ fi
 
 
 # Execute the remaining arguments as a command
-exec "$@"
+# On Windows, prefer .cmd files over bash scripts for extensionless commands
+CMD_NAME="$1"
+shift
+
+# Check if we're on Windows by checking OSTYPE (msys/cygwin/mingw) or WINDIR
+IS_WINDOWS=0
+case "$OSTYPE" in
+  msys*|cygwin*|mingw*)
+    IS_WINDOWS=1
+    ;;
+esac
+if [ -n "$WINDIR" ]; then
+  IS_WINDOWS=1
+fi
+
+if [ "$IS_WINDOWS" = "1" ]; then
+  # Check if the command already has an extension (e.g., script.js, tool.sh)
+  case "$CMD_NAME" in
+    *.*)
+      # Has extension - skip .cmd lookup
+      ;;
+    *)
+      # No extension - try to find .cmd version first
+      CMD_PATH=$(command -v "${CMD_NAME}.cmd" 2>/dev/null)
+      if [ -n "$CMD_PATH" ]; then
+        exec "$CMD_PATH" "$@"
+      fi
+      ;;
+  esac
+fi
+
+# Fall back to original command
+exec "$CMD_NAME" "$@"
+
