@@ -1,3 +1,18 @@
+## 1.8.3 Oct 13, 2025
+
+- fix: registry PATH parsing to handle spaces
+
+## 1.8.2 Oct 13, 2025
+
+- fix: nvx bash version to handle windows
+- fix: macos launch agent config
+- fix: nvx.cmd for windows when using spawn
+
+## 1.8.1 Oct 13, 2025
+
+- fix: install script to use generic shell syntax
+- fix: GUI and non-interactive shell config
+
 ## 1.8.0 Oct 12, 2025
 
 - feat: add `nvx` command to run local node_modules binaries
