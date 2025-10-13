@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 # nvx - Execute commands with local node_modules/.bin in PATH
+# NOTE: This script must be compatible with bash 3.2 (macOS default)
 
-# Check for help flag
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+# Helper function to show help text
+show_help() {
   cat << EOF
 nvx - Execute commands with local node_modules/.bin in PATH
 
@@ -19,13 +20,13 @@ Examples:
   nvx --install-to-user          Install nvm/bin to current user's PATH
   sudo nvx --install-to-system   Install nvm/bin to system PATH (all users)
 EOF
-  exit 0
-fi
+}
 
-# Check for --install-to-user flag
-if [ "$1" = "--install-to-user" ]; then
-  # Detect NVM_HOME from script location
+# Helper function to detect NVM paths
+detect_nvm_paths() {
+  # Get the directory where this script is located
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+  # NVM_HOME is the parent directory of bin/
   DETECTED_NVM_HOME="$(dirname "$SCRIPT_DIR")"
 
   # Use NVM_HOME env var if set, otherwise use detected path
@@ -35,7 +36,22 @@ if [ "$1" = "--install-to-user" ]; then
     NVM_BIN_PATH="${DETECTED_NVM_HOME}/bin"
   fi
 
-  # Check OS type
+  # Get NVM_LINK path (linked nodejs version)
+  NVM_LINK_PATH="${DETECTED_NVM_HOME}/nodejs/bin"
+  if [ -n "$NVM_LINK" ]; then
+    NVM_LINK_PATH="$NVM_LINK"
+  fi
+}
+
+# Check for help flag
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  show_help
+  exit 0
+fi
+
+# Check for --install-to-user flag
+if [ "$1" = "--install-to-user" ]; then
+  detect_nvm_paths
   OS_TYPE="$(uname)"
 
   if [ "$OS_TYPE" = "Darwin" ]; then
@@ -72,12 +88,6 @@ if [ "$1" = "--install-to-user" ]; then
     LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
     PLIST_FILE="$LAUNCH_AGENTS_DIR/com.jchip.universal-nvm.plist"
     mkdir -p "$LAUNCH_AGENTS_DIR" 2>/dev/null
-
-    # Get NVM_LINK path (linked nodejs version)
-    NVM_LINK_PATH="${DETECTED_NVM_HOME}/nodejs/bin"
-    if [ -n "$NVM_LINK" ]; then
-      NVM_LINK_PATH="$NVM_LINK"
-    fi
 
     cat > "$PLIST_FILE" << 'PLIST_EOF'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -126,12 +136,6 @@ PLIST_EOF
     SYSTEMD_ENV_DIR="$HOME/.config/environment.d"
     ENV_FILE="$SYSTEMD_ENV_DIR/10-jchip-universal-nvm.conf"
 
-    # Get NVM_LINK path (linked nodejs version)
-    NVM_LINK_PATH="${DETECTED_NVM_HOME}/nodejs/bin"
-    if [ -n "$NVM_LINK" ]; then
-      NVM_LINK_PATH="$NVM_LINK"
-    fi
-
     # Check if already installed
     if [ -f "$ENV_FILE" ] && grep -q "$NVM_BIN_PATH" "$ENV_FILE" 2>/dev/null; then
       echo "$NVM_BIN_PATH is already in user PATH"
@@ -171,23 +175,8 @@ fi
 
 # Check for --install-to-system flag
 if [ "$1" = "--install-to-system" ]; then
-  # Detect NVM_HOME from script location
-  # Get the directory where this script is located
-  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-  # NVM_HOME is the parent directory of bin/
-  DETECTED_NVM_HOME="$(dirname "$SCRIPT_DIR")"
-
-  # Use NVM_HOME env var if set, otherwise use detected path
-  if [ -n "$NVM_HOME" ]; then
-    NVM_BIN_PATH="${NVM_HOME}/bin"
-  else
-    NVM_BIN_PATH="${DETECTED_NVM_HOME}/bin"
-  fi
-
-  # Get the full path to this script for sudo command
+  detect_nvm_paths
   SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
-
-  # Check OS type
   OS_TYPE="$(uname)"
 
   if [ "$OS_TYPE" = "Darwin" ]; then
@@ -282,21 +271,7 @@ fi
 if [ $# -eq 0 ]; then
   echo "Error: nvx requires a command to execute" >&2
   echo "" >&2
-  cat << EOF
-nvx - Execute commands with local node_modules/.bin in PATH
-
-Usage:
-  nvx <command> [args...]        Execute command with ./node_modules/.bin in PATH
-  nvx --install-to-user          Add nvm/bin to user PATH (current user, works with GUI apps)
-  nvx --install-to-system        Add nvm/bin to system PATH (all users, requires sudo)
-  nvx --help, -h                 Show this help message
-
-Examples:
-  nvx eslint src/                Run eslint from local node_modules
-  nvx prettier --write .         Run prettier from local node_modules
-  nvx --install-to-user          Install nvm/bin to current user's PATH
-  sudo nvx --install-to-system   Install nvm/bin to system PATH (all users)
-EOF
+  show_help
   exit 1
 fi
 
