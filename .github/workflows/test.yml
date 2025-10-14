@@ -1,0 +1,98 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Run unit tests
+        run: fyn run test:unit
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Run E2E tests
+        run: fyn run test:e2e
+        timeout-minutes: 30
+
+      - name: Upload E2E test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs-${{ matrix.os }}
+          path: |
+            /tmp/nvm-e2e-*/**
+            C:\Users\*\AppData\Local\Temp\nvm-e2e-*\**
+          if-no-files-found: ignore
+
+  all-tests:
+    name: All Tests (Full Suite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Run all tests
+        run: fyn run test

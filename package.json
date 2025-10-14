@@ -9,7 +9,11 @@
   "main": "install.sh",
   "license": "MIT",
   "scripts": {
-    "test": "vitest run",
+    "build": "webpack",
+    "test:run": "vitest run",
+    "test": "xrun -s build test:run",
+    "test:unit": "xrun -s build && vitest run --exclude 'test/e2e/**'",
+    "test:e2e": "xrun -s build && vitest run test/e2e",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
