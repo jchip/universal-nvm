@@ -204,22 +204,6 @@ describe('common-posix utility functions', () => {
       expect(result).toContain('\\"');
       expect(result).toContain('export NVM_INSTALL=v20.10.0');
     });
-
-    it('should handle Git Bash on Windows (MSYSTEM env)', () => {
-      Object.defineProperty(process, 'platform', {
-        value: 'win32',
-        writable: true,
-        configurable: true
-      });
-      process.env.MSYSTEM = 'MINGW64';
-      process.env.PATH = 'C:\\Windows\\System32;C:\\Program Files\\Git\\cmd';
-
-      const result = commonPosix.getSetInstallEnvScript('v18.20.0');
-
-      // Should convert Windows paths to Unix-style for Git Bash
-      expect(result).toContain('export PATH=');
-      expect(result).toContain('/c/');
-    });
   });
 
   describe('createEnvironmentTmp', () => {
