@@ -263,6 +263,16 @@ class E2ETestEnv {
       return null;
     }
   }
+
+  /**
+   * Get the path to the environment file that nvm creates
+   */
+  getEnvFilePath() {
+    const tmpDir = os.tmpdir();
+    const ext = isWindows ? '.cmd' : '.sh';
+    const runId = process.env.NVM_RUN_ID || '';
+    return path.join(tmpDir, `nvm_env${runId}${ext}`);
+  }
 }
 
 /**
