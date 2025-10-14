@@ -317,7 +317,7 @@ envs:
   NVM_PROXY - set proxy URL
   HTTPS_PROXY - set proxy URL (standard env var)
   HTTP_PROXY - set proxy URL (standard env var)
-  NVM_VERIFY_SSL - (true/false) turn on/off verify SSL certs
+  NVM_VERIFY_SSL - (true/false) turn on/off SSL certificate verification (default: true)
 
 Examples:
 
@@ -339,9 +339,46 @@ These env flags can be set:
 | `NVM_PROXY`      | string         | An URL to a network proxy (higher priority than HTTP_PROXY/HTTPS_PROXY) |
 | `HTTPS_PROXY`    | string         | An URL to a network proxy (standard env var) |
 | `HTTP_PROXY`     | string         | An URL to a network proxy (standard env var, lowest priority) |
-| `NVM_VERIFY_SSL` | `true`/`false` | turn on/off node.js verify SSL certificates |
+| `NVM_VERIFY_SSL` | `true`/`false` | Controls SSL certificate verification (default: `true`) |
 
 **Proxy Priority:** Command-line `-p` flag > `NVM_PROXY` > `HTTPS_PROXY` > `HTTP_PROXY`
+
+#### SSL Certificate Verification (`NVM_VERIFY_SSL`)
+
+By default, nvm verifies SSL/TLS certificates when downloading Node.js from distribution servers. This ensures you're downloading from a trusted source.
+
+**When to disable SSL verification:**
+
+You may need to set `NVM_VERIFY_SSL=false` in these scenarios:
+
+- **Corporate proxies with SSL inspection** - Your company's network intercepts HTTPS connections with self-signed certificates
+- **Internal mirrors** - You're using an internal Node.js mirror with self-signed certificates
+- **Development environments** - Testing with local servers using self-signed certificates
+
+**How to use:**
+
+```bash
+# Disable SSL verification via environment variable (Unix/macOS)
+export NVM_VERIFY_SSL=false
+nvm install lts
+
+# Disable SSL verification via environment variable (Windows PowerShell)
+$Env:NVM_VERIFY_SSL = "false"
+nvm install lts
+
+# Disable SSL verification via command-line flag
+nvm install lts --no-ssl
+```
+
+**Security Warning:** Disabling SSL verification makes you vulnerable to man-in-the-middle attacks. Only disable it when you trust your network and understand the risks. Re-enable verification after completing your task:
+
+```bash
+# Re-enable SSL verification (Unix/macOS)
+export NVM_VERIFY_SSL=true
+
+# Re-enable SSL verification (Windows PowerShell)
+$Env:NVM_VERIFY_SSL = "true"
+```
 
 ## nvx - Execute with local node_modules
 
