@@ -1,12 +1,11 @@
-"use strict";
+import { describe, it, expect } from 'vitest';
 
 const common = require("../../lib/common");
-const { expect } = require("chai");
 
-describe("common.getRemoteFromJson", function() {
-  this.timeout(30000);
+describe("common.getRemoteFromJson", () => {
   it("should get versions", async () => {
     const versions = await common.getRemoteFromJson();
-    expect(versions).to.be.an("array").that.is.not.empty;
-  });
+    expect(versions).toBeInstanceOf(Array);
+    expect(versions.length).toBeGreaterThan(0);
+  }, 30000);
 });

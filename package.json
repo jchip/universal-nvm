@@ -9,11 +9,14 @@
   "main": "install.sh",
   "license": "MIT",
   "scripts": {
-    "test": "xrun xarc/test-only",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "preversion": "echo Do not run npm version, run xrun version --major,minor,patch && exit 1",
     "prepublishOnly": "echo Do not run npm publish, run xrun release && exit 1",
     "preinstall": "node bin/no-npm-install.js",
-    "coverage": "xrun xarc/test-cov"
+    "coverage": "vitest run --coverage"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.com/",
@@ -38,20 +41,12 @@
   "devDependencies": {
     "@babel/core": "^7.23.2",
     "@babel/preset-env": "^7.23.2",
-    "@types/chai": "^4.2.14",
-    "@types/mocha": "^8.2.0",
-    "@types/sinon": "^9.0.10",
-    "@types/sinon-chai": "^3.2.5",
     "@xarc/module-dev": "^4.1.0",
     "@xarc/run": "^2.2.0",
     "babel-loader": "^9.1.3",
-    "chai": "^4.3.4",
-    "mocha": "^9.1.0",
-    "nyc": "^15.1.0",
     "prettier": "^1.19.1",
-    "sinon": "^9.2.2",
-    "sinon-chai": "^3.5.0",
     "tsx": "^4.20.6",
+    "vitest": "^3.2.4",
     "webpack": "^5.89.0",
     "webpack-bundle-analyzer": "^4.9.1",
     "webpack-cli": "^5.1.4",
@@ -82,47 +77,9 @@
     "type": "git",
     "url": "git+https://github.com/jchip/nvm.git"
   },
-  "nyc": {
-    "all": true,
-    "reporter": [
-      "lcov",
-      "text",
-      "text-summary"
-    ],
-    "exclude": [
-      "*clap.js",
-      "*clap.ts",
-      ".eslintrc.js",
-      "coverage",
-      "dist",
-      "docs",
-      "gulpfile.js",
-      "test",
-      "xrun*.js",
-      "xrun*.ts"
-    ],
-    "check-coverage": true,
-    "statements": 0,
-    "branches": 0,
-    "functions": 0,
-    "lines": 0,
-    "cache": true,
-    "extends": []
-  },
   "opfs": {
     "mkdirp": true,
     "rimraf": true,
     "bluebird": false
-  },
-  "mocha": {
-    "require": [
-      "@xarc/module-dev/config/test/setup.js"
-    ],
-    "recursive": true
-  },
-  "@xarc/module-dev": {
-    "features": [
-      "mocha"
-    ]
   }
 }
