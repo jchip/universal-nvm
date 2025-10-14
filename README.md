@@ -313,7 +313,10 @@ Error: No command given
 
 envs:
 
+  Proxy priority: -p flag > NVM_PROXY > HTTPS_PROXY > HTTP_PROXY
   NVM_PROXY - set proxy URL
+  HTTPS_PROXY - set proxy URL (standard env var)
+  HTTP_PROXY - set proxy URL (standard env var)
   NVM_VERIFY_SSL - (true/false) turn on/off verify SSL certs
 
 Examples:
@@ -333,8 +336,12 @@ These env flags can be set:
 
 | name             | values         | description                                 |
 | ---------------- | -------------- | ------------------------------------------- |
-| `NVM_PROXY`      | string         | An URL to a network proxy                   |
+| `NVM_PROXY`      | string         | An URL to a network proxy (higher priority than HTTP_PROXY/HTTPS_PROXY) |
+| `HTTPS_PROXY`    | string         | An URL to a network proxy (standard env var) |
+| `HTTP_PROXY`     | string         | An URL to a network proxy (standard env var, lowest priority) |
 | `NVM_VERIFY_SSL` | `true`/`false` | turn on/off node.js verify SSL certificates |
+
+**Proxy Priority:** Command-line `-p` flag > `NVM_PROXY` > `HTTPS_PROXY` > `HTTP_PROXY`
 
 ## nvx - Execute with local node_modules
 
@@ -439,7 +446,18 @@ The environment file adds both paths:
 2. Install [fyn](https://www.npmjs.com/package/fyn) globally: `npm install -g fyn`
 3. Install dependencies: `fyn install`
 4. Make your changes
-5. Test your changes on the target platform(s)
+5. Run tests: `fyn run test`
+6. Run tests in watch mode: `fyn run test:watch`
+7. Run tests with coverage: `fyn run test:coverage`
+8. Test your changes on the target platform(s)
+
+**Testing:**
+
+This project uses [Vitest](https://vitest.dev/) for testing. The test suite includes:
+- Unit tests for proxy configuration and priority logic
+- Integration tests with a custom test proxy server
+- Tests for malformed requests and error handling
+- Real-world tests with nodejs.org URLs
 
 ### Release Process
 
