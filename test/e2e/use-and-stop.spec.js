@@ -251,5 +251,105 @@ describe('E2E: nvm use and nvm stop', () => {
         }
       }
     }, 15000);
+
+    it('should handle .node-version file if present', async () => {
+      // Create a .node-version file in the test directory
+      const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+      const nodeVersionValue = testVersion.replace(/^v/, '');
+      fs.writeFileSync(nodeVersionPath, nodeVersionValue);
+
+      try {
+        // Run 'nvm use' without version (should read from .node-version)
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should attempt to use the version from .node-version
+        // Will fail because version is not installed, but should read the file
+        expect(result.stdout || result.stderr).toMatch(/\.node-version|not installed/i);
+      } finally {
+        // Cleanup
+        if (fs.existsSync(nodeVersionPath)) {
+          fs.unlinkSync(nodeVersionPath);
+        }
+      }
+    }, 15000);
+
+    it('should show helpful error when .node-version is invalid', async () => {
+      // Create an invalid .node-version file
+      const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+      fs.writeFileSync(nodeVersionPath, 'invalid-version-format!!!');
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should show error about invalid version
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout || result.stderr).toMatch(/invalid|error|not found/i);
+      } finally {
+        // Cleanup
+        if (fs.existsSync(nodeVersionPath)) {
+          fs.unlinkSync(nodeVersionPath);
+        }
+      }
+    }, 15000);
+
+    it('should prefer .nvmrc over .node-version when both exist', async () => {
+      // Create both files with different versions
+      const nvmrcPath = path.join(env.nvmHome, '.nvmrc');
+      const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+
+      const nvmrcVersion = testVersion.replace(/^v/, '');
+      const nodeVersionValue = '20.10.0'; // Different version
+
+      fs.writeFileSync(nvmrcPath, nvmrcVersion);
+      fs.writeFileSync(nodeVersionPath, nodeVersionValue);
+
+      try {
+        // Run 'nvm use' without version
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should read from .nvmrc (priority)
+        expect(result.stdout || result.stderr).toMatch(new RegExp(`\\.nvmrc|${nvmrcVersion}`, 'i'));
+      } finally {
+        // Cleanup
+        if (fs.existsSync(nvmrcPath)) {
+          fs.unlinkSync(nvmrcPath);
+        }
+        if (fs.existsSync(nodeVersionPath)) {
+          fs.unlinkSync(nodeVersionPath);
+        }
+      }
+    }, 15000);
+
+    it('should show helpful error when neither .nvmrc nor .node-version exist', async () => {
+      // Ensure no version files exist
+      const nvmrcPath = path.join(env.nvmHome, '.nvmrc');
+      const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+
+      if (fs.existsSync(nvmrcPath)) {
+        fs.unlinkSync(nvmrcPath);
+      }
+      if (fs.existsSync(nodeVersionPath)) {
+        fs.unlinkSync(nodeVersionPath);
+      }
+
+      // Run 'nvm use' without version
+      const result = await env.runNvmCommand(['use'], {
+        timeout: 10000,
+        cwd: env.nvmHome
+      });
+
+      // Should show error about missing version file
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout || result.stderr).toMatch(/\.nvmrc.*\.node-version|no.*file/i);
+    }, 15000);
   });
 });

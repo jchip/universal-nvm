@@ -1,4 +1,4 @@
-# @jchip/nvm
+# Universal NVM (@jchip/nvm)
 
 A universal node.js version manager for Windows (no admin) and Unix.
 
@@ -12,9 +12,9 @@ A universal node.js version manager for Windows (no admin) and Unix.
 
 ## Table Of Contents
 
-- [@jchip/nvm](#jchipnvm)
+- [Universal NVM (@jchip/nvm)](#universal-nvm-jchipnvm)
   - [Table Of Contents](#table-of-contents)
-  - [Installing Windows nvm using PowerShell](#installing-windows-nvm-using-powershell)
+  - [Installing Universal NVM on Windows using PowerShell](#installing-universal-nvm-on-windows-using-powershell)
     - [Installing from github.com](#installing-from-githubcom)
     - [Installing from unpkg.com](#installing-from-unpkgcom)
     - [Installing from jsdelivr.net](#installing-from-jsdelivrnet)
@@ -22,7 +22,7 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Troubleshooting](#troubleshooting)
       - [Running scripts disabled](#running-scripts-disabled)
       - [No PowerShell - Manual Install](#no-powershell---manual-install)
-  - [Installing Unix nvm](#installing-unix-nvm)
+  - [Installing Universal NVM on Unix](#installing-universal-nvm-on-unix)
     - [Installing from github.com](#installing-from-githubcom-1)
     - [Installing from unpkg.com](#installing-from-unpkgcom-1)
     - [Installing from jsdelivr.net](#installing-from-jsdelivrnet-1)
@@ -43,7 +43,7 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Release Process](#release-process)
   - [License](#license)
 
-## Installing Windows nvm using PowerShell
+## Installing Universal NVM on Windows using PowerShell
 
 **_You don't need admin rights to install or use_**, only the permission to execute PowerShell scripts.
 
@@ -153,7 +153,7 @@ If for some reason you absolutely can't have PowerShell or permission to install
 
 ### Using Git Bash on Windows
 
-If you want to use nvm with Git Bash after installing on Windows via PowerShell:
+If you want to use Universal NVM with Git Bash after installing on Windows via PowerShell:
 
 1. First install nvm using PowerShell (see instructions above)
 2. Open Git Bash
@@ -168,7 +168,7 @@ If you want to use nvm with Git Bash after installing on Windows via PowerShell:
 
 Now you can use `nvm` commands in Git Bash just like on Unix systems.
 
-## Installing Unix nvm
+## Installing Universal NVM on Unix
 
 Because this is implemented in node.js, it happens to work on Unix also. It just need a different install script using bash.
 
@@ -226,7 +226,7 @@ export NVM_HOME=~/nvm; wget -qO- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.8.4/i
 
 ### Shell Initialization on Unix
 
-The nvm installation automatically updates your shell profile files to initialize nvm. The behavior differs between zsh and bash:
+The Universal NVM installation automatically updates your shell profile files to initialize nvm. The behavior differs between zsh and bash:
 
 #### Zsh (macOS default)
 
@@ -330,6 +330,70 @@ doc: https://www.npmjs.com/package/@jchip/nvm
 
 ```
 
+### Version Files (.nvmrc and .node-version)
+
+When you run `nvm use` without specifying a version, Universal NVM will automatically look for a version file in the current directory.
+
+**Supported files (in priority order):**
+
+1. **`.nvmrc`** - nvm-specific version file (checked first)
+2. **`.node-version`** - Universal Node.js version file (checked if .nvmrc not found)
+
+**Usage:**
+
+```bash
+# Create a .nvmrc file
+echo "20.10.0" > .nvmrc
+
+# Or create a .node-version file
+echo "20.10.0" > .node-version
+
+# Use the version specified in the file
+nvm use
+# Output: Read version 20.10.0 from .nvmrc
+```
+
+**File format:**
+
+Both files should contain a plain text version number on a single line:
+
+```
+20.10.0
+```
+
+Or with the `v` prefix:
+
+```
+v20.10.0
+```
+
+**Priority when both files exist:**
+
+If both `.nvmrc` and `.node-version` exist in the same directory, Universal NVM will prefer `.nvmrc`:
+
+```bash
+# With both files present
+$ cat .nvmrc
+18.20.0
+
+$ cat .node-version
+20.10.0
+
+$ nvm use
+# Output: Read version 18.20.0 from .nvmrc
+```
+
+**Benefits of .node-version:**
+
+The `.node-version` file is a universal standard supported by many Node.js version managers:
+- **Universal NVM** (this tool)
+- **nodenv**
+- **fnm** (Fast Node Manager)
+- **asdf-nodejs**
+- **volta**
+
+Using `.node-version` makes your project more portable across different tools and teams.
+
 ### Environments
 
 These env flags can be set:
@@ -345,7 +409,7 @@ These env flags can be set:
 
 #### SSL Certificate Verification (`NVM_VERIFY_SSL`)
 
-By default, nvm verifies SSL/TLS certificates when downloading Node.js from distribution servers. This ensures you're downloading from a trusted source.
+By default, Universal NVM verifies SSL/TLS certificates when downloading Node.js from distribution servers. This ensures you're downloading from a trusted source.
 
 **When to disable SSL verification:**
 
@@ -409,11 +473,11 @@ nvx -h
 
 ### Installing to PATH (macOS/Linux only)
 
-On macOS and Linux, you can optionally add the nvm bin directory to your system PATH to make nvm commands available in GUI applications (like VS Code).
+On macOS and Linux, you can optionally add the Universal NVM bin directory to your system PATH to make nvm commands available in GUI applications (like VS Code).
 
 #### Install to User PATH (recommended)
 
-This adds nvm to your user's PATH. Works with GUI applications and doesn't require sudo:
+This adds Universal NVM to your user's PATH. Works with GUI applications and doesn't require sudo:
 
 **macOS:**
 ```bash
@@ -429,7 +493,7 @@ nvx --install-to-user
 
 #### Install to System PATH (all users)
 
-This adds nvm to the system-wide PATH for all users. Requires sudo:
+This adds Universal NVM to the system-wide PATH for all users. Requires sudo:
 
 **macOS:**
 ```bash
@@ -443,15 +507,15 @@ sudo nvx --install-to-system
 # Log out and log back in for changes to take effect
 ```
 
-**Note for Windows users:** On Windows, the installation script automatically adds both `%NVM_HOME%\bin` and `%NVM_LINK%` to your user PATH in the Windows registry. This makes nvm, node, and npm immediately available to all applications (terminal, GUI apps like VS Code, etc.) without needing to run any additional commands. The `nvx --install-to-user` and `nvx --install-to-system` commands are therefore not needed on Windows.
+**Note for Windows users:** On Windows, the installation script automatically adds both `%NVM_HOME%\bin` and `%NVM_LINK%` to your user PATH in the Windows registry. This makes Universal NVM, node, and npm immediately available to all applications (terminal, GUI apps like VS Code, etc.) without needing to run any additional commands. The `nvx --install-to-user` and `nvx --install-to-system` commands are therefore not needed on Windows.
 
 #### How it Works
 
-The `nvx --install-to-user` command uses platform-specific mechanisms to make nvm available to GUI applications:
+The `nvx --install-to-user` command uses platform-specific mechanisms to make Universal NVM available to GUI applications:
 
 **macOS:**
 
-Creates a LaunchAgent at `~/Library/LaunchAgents/com.jchip.universal-nvm.plist` that runs at login to set environment variables for the user session. This makes nvm available to:
+Creates a LaunchAgent at `~/Library/LaunchAgents/com.jchip.universal-nvm.plist` that runs at login to set environment variables for the user session. This makes Universal NVM available to:
 - All GUI applications (VS Code, editors, etc.)
 - Terminal windows
 - Background processes
@@ -462,7 +526,7 @@ The LaunchAgent adds both paths to your environment:
 
 **Linux:**
 
-Creates a systemd user environment file at `~/.config/environment.d/10-jchip-universal-nvm.conf`. This file is read by systemd-based desktop environments at login and makes nvm available to:
+Creates a systemd user environment file at `~/.config/environment.d/10-jchip-universal-nvm.conf`. This file is read by systemd-based desktop environments at login and makes Universal NVM available to:
 - All GUI applications launched from the desktop
 - Applications started by systemd user services
 - Any process in your user session
