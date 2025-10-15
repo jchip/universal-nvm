@@ -233,4 +233,139 @@ describe('Proxy Configuration', () => {
       expect(verifyssl).toBe(true);
     });
   });
+
+  describe('Corepack Configuration', () => {
+    it('should use CLI flag when provided (--corepack)', () => {
+      delete process.env.NVM_COREPACK_ENABLED;
+
+      const parsed = {
+        source: { corepack: 'cli' },
+        opts: { corepack: true }
+      };
+
+      const corepack = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+
+      expect(corepack).toBe(true);
+    });
+
+    it('should use CLI flag when provided (--no-corepack)', () => {
+      process.env.NVM_COREPACK_ENABLED = 'true';
+
+      const parsed = {
+        source: { corepack: 'cli' },
+        opts: { corepack: false }
+      };
+
+      const corepack = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+
+      expect(corepack).toBe(false);
+    });
+
+    it('should use NVM_COREPACK_ENABLED when CLI flag not provided', () => {
+      process.env.NVM_COREPACK_ENABLED = 'true';
+
+      const parsed = {
+        source: {},
+        opts: {}
+      };
+
+      const corepack = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+
+      expect(corepack).toBe(true);
+    });
+
+    it('should default to false when neither CLI flag nor env var are set', () => {
+      delete process.env.NVM_COREPACK_ENABLED;
+
+      const parsed = {
+        source: {},
+        opts: {}
+      };
+
+      const corepack = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+
+      expect(corepack).toBe(false);
+    });
+
+    it('should default to false when env var is not "true"', () => {
+      process.env.NVM_COREPACK_ENABLED = 'false';
+
+      const parsed = {
+        source: {},
+        opts: {}
+      };
+
+      const corepack = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+
+      expect(corepack).toBe(false);
+    });
+
+    it('should prioritize CLI flag over env var', () => {
+      process.env.NVM_COREPACK_ENABLED = 'false';
+
+      const parsed = {
+        source: { corepack: 'cli' },
+        opts: { corepack: true }
+      };
+
+      const corepack = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+
+      expect(corepack).toBe(true);
+    });
+
+    it('should follow the correct priority: CLI flag > NVM_COREPACK_ENABLED > default (false)', () => {
+      // Test case 1: CLI flag set to true, env var false
+      let parsed = {
+        source: { corepack: 'cli' },
+        opts: { corepack: true }
+      };
+      process.env.NVM_COREPACK_ENABLED = 'false';
+
+      let result = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+      expect(result).toBe(true);
+
+      // Test case 2: No CLI flag, env var true
+      parsed = { source: {}, opts: {} };
+      process.env.NVM_COREPACK_ENABLED = 'true';
+
+      result = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+      expect(result).toBe(true);
+
+      // Test case 3: No CLI flag, no env var (default to false)
+      delete process.env.NVM_COREPACK_ENABLED;
+
+      result = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+      expect(result).toBe(false);
+
+      // Test case 4: CLI flag false, env var true (CLI wins)
+      parsed = {
+        source: { corepack: 'cli' },
+        opts: { corepack: false }
+      };
+      process.env.NVM_COREPACK_ENABLED = 'true';
+
+      result = parsed.source.corepack === 'cli'
+        ? parsed.opts.corepack
+        : process.env.NVM_COREPACK_ENABLED === 'true';
+      expect(result).toBe(false);
+    });
+  });
 });

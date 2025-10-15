@@ -304,6 +304,8 @@ Options:
   --proxy, -p                   Set network proxy URL                   [string]
   --verifyssl, --ssl, --no-ssl  Turn on/off verify SSL certificate
                                                        [boolean] [default: true]
+  --corepack, --no-corepack     Enable corepack after installation
+                                                                       [boolean]
   --latest                      Match latest version to uninstall
   --version, -V, -v             Show version number
   --help, -?, -h                Show help. Add a command to show its help
@@ -313,16 +315,19 @@ Error: No command given
 
 envs:
 
-  Proxy priority: -p flag > NVM_PROXY > HTTPS_PROXY > HTTP_PROXY
   NVM_PROXY - set proxy URL
-  HTTPS_PROXY - set proxy URL (standard env var)
-  HTTP_PROXY - set proxy URL (standard env var)
+  HTTP_PROXY - fallback proxy for HTTP requests
+  HTTPS_PROXY - fallback proxy for HTTPS requests
   NVM_VERIFY_SSL - (true/false) turn on/off SSL certificate verification (default: true)
+  NVM_COREPACK_ENABLED - (true/false) enable corepack on install (default: false)
+
+  Proxy priority: -p flag > NVM_PROXY > HTTPS_PROXY > HTTP_PROXY
 
 Examples:
 
     nvm install lts
     nvm install latest
+    nvm install 20 --corepack
     nvm use 20
     nvm uninstall 22.3
 
@@ -467,6 +472,7 @@ These env flags can be set:
 | `http_proxy`     | string         | An URL to a network proxy for HTTP (lowercase, npm convention) |
 | `HTTP_PROXY`     | string         | An URL to a network proxy for HTTP (uppercase) |
 | `NVM_VERIFY_SSL` | `true`/`false` | Controls SSL certificate verification (default: `true`) |
+| `NVM_COREPACK_ENABLED` | `true`/`false` | Enable corepack after installation (default: `false`) |
 
 **Proxy Priority:**
 1. Command-line `-p` flag (highest priority)
@@ -513,6 +519,63 @@ export NVM_VERIFY_SSL=true
 # Re-enable SSL verification (Windows PowerShell)
 $Env:NVM_VERIFY_SSL = "true"
 ```
+
+#### Corepack Support (`NVM_COREPACK_ENABLED`)
+
+Corepack is a built-in Node.js feature (available since v16.9.0) that manages package managers like Yarn and pnpm. It allows you to use the exact package manager version specified in your project's `package.json` without manually installing them.
+
+**When to enable corepack:**
+
+- **Using Yarn or pnpm** - Your project uses Yarn or pnpm instead of npm
+- **Version consistency** - You want to ensure everyone on your team uses the same package manager version
+- **Modern projects** - You're working with projects that specify `packageManager` in package.json
+
+**How to use:**
+
+```bash
+# Enable corepack via environment variable (Unix/macOS)
+export NVM_COREPACK_ENABLED=true
+nvm install lts
+
+# Enable corepack via environment variable (Windows PowerShell)
+$Env:NVM_COREPACK_ENABLED = "true"
+nvm install lts
+
+# Enable corepack via command-line flag (one-time)
+nvm install 20 --corepack
+
+# Disable corepack for a specific installation
+nvm install 18 --no-corepack
+```
+
+**What corepack does:**
+
+After installing Node.js, Universal NVM will automatically run `corepack enable`, which:
+- Makes `yarn` and `pnpm` commands available
+- Respects the `packageManager` field in your `package.json`
+- Automatically uses the correct package manager version for your project
+
+**Example package.json with packageManager:**
+
+```json
+{
+  "name": "my-project",
+  "packageManager": "pnpm@9.1.0",
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}
+```
+
+With corepack enabled, running `pnpm install` will automatically use pnpm version 9.1.0, even if you don't have it installed globally.
+
+**Note:** If corepack fails to enable (e.g., on Node.js versions before v16.9.0), Universal NVM will show a warning but will not fail the installation. You can manually enable it later with:
+
+```bash
+corepack enable
+```
+
+**Priority:** `--corepack` flag > `NVM_COREPACK_ENABLED` env var > default (`false`)
 
 ## nvx - Execute with local node_modules
 
