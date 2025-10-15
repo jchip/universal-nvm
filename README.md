@@ -400,12 +400,21 @@ These env flags can be set:
 
 | name             | values         | description                                 |
 | ---------------- | -------------- | ------------------------------------------- |
-| `NVM_PROXY`      | string         | An URL to a network proxy (higher priority than HTTP_PROXY/HTTPS_PROXY) |
-| `HTTPS_PROXY`    | string         | An URL to a network proxy (standard env var) |
-| `HTTP_PROXY`     | string         | An URL to a network proxy (standard env var, lowest priority) |
+| `NVM_PROXY`      | string         | An URL to a network proxy (highest priority) |
+| `https_proxy`    | string         | An URL to a network proxy for HTTPS (lowercase, npm convention) |
+| `HTTPS_PROXY`    | string         | An URL to a network proxy for HTTPS (uppercase) |
+| `http_proxy`     | string         | An URL to a network proxy for HTTP (lowercase, npm convention) |
+| `HTTP_PROXY`     | string         | An URL to a network proxy for HTTP (uppercase) |
 | `NVM_VERIFY_SSL` | `true`/`false` | Controls SSL certificate verification (default: `true`) |
 
-**Proxy Priority:** Command-line `-p` flag > `NVM_PROXY` > `HTTPS_PROXY` > `HTTP_PROXY`
+**Proxy Priority:**
+1. Command-line `-p` flag (highest priority)
+2. `NVM_PROXY` (overrides all protocol-specific proxies)
+3. Protocol-specific proxy (matches URL being fetched):
+   - For HTTPS URLs: `https_proxy` → `HTTPS_PROXY` → `http_proxy` → `HTTP_PROXY`
+   - For HTTP URLs: `http_proxy` → `HTTP_PROXY`
+
+Following npm convention, lowercase environment variables are checked first, then uppercase.
 
 #### SSL Certificate Verification (`NVM_VERIFY_SSL`)
 
