@@ -147,6 +147,136 @@ describe("common utility functions", () => {
     });
   });
 
+  describe("partialVersionToRange", () => {
+    it("should convert major version to x.x range", () => {
+      expect(common.partialVersionToRange("v20")).toBe("20.x.x");
+      expect(common.partialVersionToRange("v18")).toBe("18.x.x");
+      expect(common.partialVersionToRange("v22")).toBe("22.x.x");
+    });
+
+    it("should convert major.minor version to x range", () => {
+      expect(common.partialVersionToRange("v20.10")).toBe("20.10.x");
+      expect(common.partialVersionToRange("v18.20")).toBe("18.20.x");
+      expect(common.partialVersionToRange("v22.1")).toBe("22.1.x");
+    });
+
+    it("should return full version as-is (without v prefix)", () => {
+      expect(common.partialVersionToRange("v20.10.0")).toBe("20.10.0");
+      expect(common.partialVersionToRange("v18.20.1")).toBe("18.20.1");
+      expect(common.partialVersionToRange("v22.1.0")).toBe("22.1.0");
+    });
+
+    it("should handle versions without v prefix", () => {
+      expect(common.partialVersionToRange("20")).toBe("20.x.x");
+      expect(common.partialVersionToRange("20.10")).toBe("20.10.x");
+      expect(common.partialVersionToRange("20.10.0")).toBe("20.10.0");
+    });
+
+    it("should handle single digit versions", () => {
+      expect(common.partialVersionToRange("v4")).toBe("4.x.x");
+      expect(common.partialVersionToRange("v6")).toBe("6.x.x");
+    });
+  });
+
+  describe("Semver range matching with matchLatestVersion", () => {
+    const allVersions = [
+      "v16.20.0", "v16.20.1", "v16.20.2",
+      "v18.19.0", "v18.20.0", "v18.20.1",
+      "v20.10.0", "v20.11.0", "v20.12.0",
+      "v22.0.0", "v22.1.0", "v22.2.0"
+    ];
+
+    it("should match x.x.x range correctly", () => {
+      expect(common.matchLatestVersion("v18", allVersions)).toBe("v18.20.1");
+      expect(common.matchLatestVersion("v20", allVersions)).toBe("v20.12.0");
+      expect(common.matchLatestVersion("v22", allVersions)).toBe("v22.2.0");
+    });
+
+    it("should match major.x range correctly", () => {
+      expect(common.matchLatestVersion("v18.20", allVersions)).toBe("v18.20.1");
+      expect(common.matchLatestVersion("v20.11", allVersions)).toBe("v20.11.0");
+      expect(common.matchLatestVersion("v16.20", allVersions)).toBe("v16.20.2");
+    });
+
+    it("should return exact match for full version", () => {
+      expect(common.matchLatestVersion("v18.20.0", allVersions)).toBe("v18.20.0");
+      expect(common.matchLatestVersion("v20.11.0", allVersions)).toBe("v20.11.0");
+    });
+
+    it("should handle edge case with single version in range", () => {
+      expect(common.matchLatestVersion("v22.0", allVersions)).toBe("v22.0.0");
+    });
+  });
+
+  describe("Semver range matching with matchOldestVersion", () => {
+    const allVersions = [
+      "v16.20.0", "v16.20.1", "v16.20.2",
+      "v18.19.0", "v18.20.0", "v18.20.1",
+      "v20.10.0", "v20.11.0", "v20.12.0",
+      "v22.0.0", "v22.1.0", "v22.2.0"
+    ];
+
+    it("should match x.x.x range correctly", () => {
+      expect(common.matchOldestVersion("v18", allVersions)).toBe("v18.19.0");
+      expect(common.matchOldestVersion("v20", allVersions)).toBe("v20.10.0");
+      expect(common.matchOldestVersion("v22", allVersions)).toBe("v22.0.0");
+    });
+
+    it("should match major.x range correctly", () => {
+      expect(common.matchOldestVersion("v18.20", allVersions)).toBe("v18.20.0");
+      expect(common.matchOldestVersion("v20.11", allVersions)).toBe("v20.11.0");
+      expect(common.matchOldestVersion("v16.20", allVersions)).toBe("v16.20.0");
+    });
+
+    it("should return exact match for full version", () => {
+      expect(common.matchOldestVersion("v18.20.1", allVersions)).toBe("v18.20.1");
+      expect(common.matchOldestVersion("v20.12.0", allVersions)).toBe("v20.12.0");
+    });
+  });
+
+  describe("sortVersions with semver", () => {
+    it("should handle versions with different digit counts", () => {
+      const versions = ["v4.9.1", "v16.20.0", "v20.10.0", "v6.17.1"];
+      const sorted = common.sortVersions(versions);
+
+      expect(sorted).toEqual(["v4.9.1", "v6.17.1", "v16.20.0", "v20.10.0"]);
+    });
+
+    it("should handle versions with same major but different lengths", () => {
+      const versions = ["v18.20.10", "v18.20.2", "v18.20.1"];
+      const sorted = common.sortVersions(versions);
+
+      expect(sorted).toEqual(["v18.20.1", "v18.20.2", "v18.20.10"]);
+    });
+
+    it("should maintain sorted order for already sorted array", () => {
+      const versions = ["v16.0.0", "v18.0.0", "v20.0.0", "v22.0.0"];
+      const sorted = common.sortVersions(versions);
+
+      expect(sorted).toEqual(versions);
+    });
+
+    it("should handle reverse sorted array", () => {
+      const versions = ["v22.0.0", "v20.0.0", "v18.0.0", "v16.0.0"];
+      const sorted = common.sortVersions(versions);
+
+      expect(sorted).toEqual(["v16.0.0", "v18.0.0", "v20.0.0", "v22.0.0"]);
+    });
+
+    it("should handle mixed order with many versions", () => {
+      const versions = [
+        "v22.1.0", "v18.20.0", "v20.10.0", "v16.20.2",
+        "v18.19.0", "v22.0.0", "v20.11.0", "v16.20.0"
+      ];
+      const sorted = common.sortVersions(versions);
+
+      expect(sorted).toEqual([
+        "v16.20.0", "v16.20.2", "v18.19.0", "v18.20.0",
+        "v20.10.0", "v20.11.0", "v22.0.0", "v22.1.0"
+      ]);
+    });
+  });
+
   describe("nodejsDistUrl", () => {
     it("should construct URL with default base", () => {
       const url = common.nodejsDistUrl("v18.20.0/node-v18.20.0-linux-x64.tar.gz");
