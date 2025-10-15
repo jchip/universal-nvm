@@ -329,16 +329,20 @@ describe('E2E: nvm use and nvm stop', () => {
       }
     }, 15000);
 
-    it('should show helpful error when neither .nvmrc nor .node-version exist', async () => {
+    it('should show helpful error when neither .nvmrc nor .node-version nor package.json exist', async () => {
       // Ensure no version files exist
       const nvmrcPath = path.join(env.nvmHome, '.nvmrc');
       const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
 
       if (fs.existsSync(nvmrcPath)) {
         fs.unlinkSync(nvmrcPath);
       }
       if (fs.existsSync(nodeVersionPath)) {
         fs.unlinkSync(nodeVersionPath);
+      }
+      if (fs.existsSync(packageJsonPath)) {
+        fs.unlinkSync(packageJsonPath);
       }
 
       // Run 'nvm use' without version
@@ -347,9 +351,215 @@ describe('E2E: nvm use and nvm stop', () => {
         cwd: env.nvmHome
       });
 
-      // Should show error about missing version file
+      // Should show error about missing version file or package.json
       expect(result.exitCode).toBe(1);
-      expect(result.stdout || result.stderr).toMatch(/\.nvmrc.*\.node-version|no.*file/i);
+      expect(result.stdout || result.stderr).toMatch(/no.*file|package\.json/i);
+    }, 15000);
+
+    it('should read exact version from package.json engines.node as fallback', async () => {
+      // Ensure no .nvmrc or .node-version files exist
+      const nvmrcPath = path.join(env.nvmHome, '.nvmrc');
+      const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      if (fs.existsSync(nvmrcPath)) fs.unlinkSync(nvmrcPath);
+      if (fs.existsSync(nodeVersionPath)) fs.unlinkSync(nodeVersionPath);
+
+      // Create package.json with exact version
+      const packageJson = {
+        name: 'test-project',
+        engines: {
+          node: testVersion.replace(/^v/, '')
+        }
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should read from package.json
+        expect(result.stdout || result.stderr).toMatch(/package\.json|not installed/i);
+      } finally {
+        if (fs.existsSync(packageJsonPath)) {
+          fs.unlinkSync(packageJsonPath);
+        }
+      }
+    }, 15000);
+
+    it.skip('should resolve semver range from package.json engines.node', async () => {
+      // This test requires installed versions - skip for now
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      // Create package.json with semver range
+      const packageJson = {
+        name: 'test-project',
+        engines: {
+          node: '>=18.0.0'
+        }
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should resolve to highest matching version
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toMatch(/found.*matching|now using/i);
+      } finally {
+        if (fs.existsSync(packageJsonPath)) {
+          fs.unlinkSync(packageJsonPath);
+        }
+      }
+    }, 15000);
+
+    it('should show error when no installed version satisfies engines.node range', async () => {
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      // Create package.json with impossible range
+      const packageJson = {
+        name: 'test-project',
+        engines: {
+          node: '>=99.0.0'
+        }
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should show error about no matching version
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout || result.stderr).toMatch(/no.*version.*satisfies|no.*installed/i);
+      } finally {
+        if (fs.existsSync(packageJsonPath)) {
+          fs.unlinkSync(packageJsonPath);
+        }
+      }
+    }, 15000);
+
+    it('should show error for invalid semver range in package.json', async () => {
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      // Create package.json with invalid semver
+      const packageJson = {
+        name: 'test-project',
+        engines: {
+          node: 'not-a-valid-version!!!'
+        }
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should show error about invalid version
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout || result.stderr).toMatch(/invalid.*version|invalid.*requirement/i);
+      } finally {
+        if (fs.existsSync(packageJsonPath)) {
+          fs.unlinkSync(packageJsonPath);
+        }
+      }
+    }, 15000);
+
+    it('should prefer .nvmrc over package.json engines.node', async () => {
+      const nvmrcPath = path.join(env.nvmHome, '.nvmrc');
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      const nvmrcVersion = testVersion.replace(/^v/, '');
+
+      // Create both files
+      fs.writeFileSync(nvmrcPath, nvmrcVersion);
+      const packageJson = {
+        name: 'test-project',
+        engines: {
+          node: '>=18.0.0'
+        }
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should read from .nvmrc (priority)
+        expect(result.stdout || result.stderr).toMatch(new RegExp(`\\.nvmrc|${nvmrcVersion}`, 'i'));
+        expect(result.stdout || result.stderr).not.toMatch(/package\.json/i);
+      } finally {
+        if (fs.existsSync(nvmrcPath)) fs.unlinkSync(nvmrcPath);
+        if (fs.existsSync(packageJsonPath)) fs.unlinkSync(packageJsonPath);
+      }
+    }, 15000);
+
+    it('should prefer .node-version over package.json engines.node', async () => {
+      const nodeVersionPath = path.join(env.nvmHome, '.node-version');
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      const nodeVersion = testVersion.replace(/^v/, '');
+
+      // Create both files
+      fs.writeFileSync(nodeVersionPath, nodeVersion);
+      const packageJson = {
+        name: 'test-project',
+        engines: {
+          node: '>=18.0.0'
+        }
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should read from .node-version (priority)
+        expect(result.stdout || result.stderr).toMatch(new RegExp(`\\.node-version|${nodeVersion}`, 'i'));
+        expect(result.stdout || result.stderr).not.toMatch(/package\.json/i);
+      } finally {
+        if (fs.existsSync(nodeVersionPath)) fs.unlinkSync(nodeVersionPath);
+        if (fs.existsSync(packageJsonPath)) fs.unlinkSync(packageJsonPath);
+      }
+    }, 15000);
+
+    it('should handle package.json without engines field gracefully', async () => {
+      const packageJsonPath = path.join(env.nvmHome, 'package.json');
+
+      // Create package.json without engines
+      const packageJson = {
+        name: 'test-project',
+        version: '1.0.0'
+      };
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+      try {
+        const result = await env.runNvmCommand(['use'], {
+          timeout: 10000,
+          cwd: env.nvmHome
+        });
+
+        // Should show error about no version file
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout || result.stderr).toMatch(/no.*file|engines\.node/i);
+      } finally {
+        if (fs.existsSync(packageJsonPath)) {
+          fs.unlinkSync(packageJsonPath);
+        }
+      }
     }, 15000);
   });
 });

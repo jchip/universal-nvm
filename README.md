@@ -330,32 +330,47 @@ doc: https://www.npmjs.com/package/@jchip/nvm
 
 ```
 
-### Version Files (.nvmrc and .node-version)
+### Version Files (.nvmrc, .node-version, and package.json)
 
-When you run `nvm use` without specifying a version, Universal NVM will automatically look for a version file in the current directory.
+When you run `nvm use` without specifying a version, Universal NVM will automatically look for a version specification in the current directory.
 
-**Supported files (in priority order):**
+**Supported sources (in priority order):**
 
 1. **`.nvmrc`** - nvm-specific version file (checked first)
 2. **`.node-version`** - Universal Node.js version file (checked if .nvmrc not found)
+3. **`package.json` → `engines.node`** - Fallback to package.json engines field (checked if no version files exist)
 
 **Usage:**
 
 ```bash
-# Create a .nvmrc file
+# Option 1: Create a .nvmrc file
 echo "20.10.0" > .nvmrc
 
-# Or create a .node-version file
+# Option 2: Create a .node-version file
 echo "20.10.0" > .node-version
 
-# Use the version specified in the file
+# Option 3: Use package.json engines.node
+cat > package.json << EOF
+{
+  "name": "my-project",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+EOF
+
+# Use the version specified in any of these sources
 nvm use
-# Output: Read version 20.10.0 from .nvmrc
+# Output varies based on source:
+# - Read version 20.10.0 from .nvmrc
+# - Read version 20.10.0 from .node-version
+# - Read node requirement ">=18.0.0" from package.json
+#   Found installed version v20.10.0 matching ">=18.0.0"
 ```
 
 **File format:**
 
-Both files should contain a plain text version number on a single line:
+`.nvmrc` and `.node-version` files should contain a plain text version number on a single line:
 
 ```
 20.10.0
@@ -367,32 +382,78 @@ Or with the `v` prefix:
 v20.10.0
 ```
 
-**Priority when both files exist:**
+**Semver ranges (package.json only):**
 
-If both `.nvmrc` and `.node-version` exist in the same directory, Universal NVM will prefer `.nvmrc`:
+The `engines.node` field in `package.json` supports semantic versioning (semver) ranges:
+
+```json
+{
+  "engines": {
+    "node": ">=18.0.0"        // Any version 18 or higher
+  }
+}
+```
+
+```json
+{
+  "engines": {
+    "node": "^20.0.0"         // Latest 20.x version
+  }
+}
+```
+
+```json
+{
+  "engines": {
+    "node": ">=18.0.0 <21.0.0"  // Version 18 or 20, but not 21+
+  }
+}
+```
+
+When using semver ranges, Universal NVM will automatically select the **highest installed version** that satisfies the requirement. If no installed version matches, you'll see a helpful error message suggesting which version to install.
+
+**Priority when multiple sources exist:**
+
+If multiple version sources exist in the same directory, Universal NVM will prefer them in this order:
 
 ```bash
-# With both files present
+# With all three present
 $ cat .nvmrc
 18.20.0
 
 $ cat .node-version
 20.10.0
 
+$ cat package.json
+{
+  "engines": { "node": ">=16.0.0" }
+}
+
 $ nvm use
 # Output: Read version 18.20.0 from .nvmrc
+# .node-version and package.json are ignored
 ```
 
-**Benefits of .node-version:**
+**Benefits of each approach:**
 
-The `.node-version` file is a universal standard supported by many Node.js version managers:
-- **Universal NVM** (this tool)
-- **nodenv**
-- **fnm** (Fast Node Manager)
-- **asdf-nodejs**
-- **volta**
+**`.nvmrc`** - Best for teams using traditional nvm:
+- Standard for nvm users
+- Simple exact version specification
 
-Using `.node-version` makes your project more portable across different tools and teams.
+**`.node-version`** - Best for cross-tool compatibility:
+- Universal standard supported by many version managers:
+  - Universal NVM (this tool)
+  - nodenv
+  - fnm (Fast Node Manager)
+  - asdf-nodejs
+  - volta
+- Makes your project more portable across different tools
+
+**`package.json` engines.node** - Best for existing projects:
+- Already part of Node.js ecosystem
+- Supports semver ranges for flexibility
+- Single source of truth (no separate version file needed)
+- Automatically used as fallback if no .nvmrc or .node-version exists
 
 ### Environments
 
