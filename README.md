@@ -287,6 +287,11 @@ Commands:
   nvm install <version>      install the given version of Node.js
   nvm uninstall <version>    uninstall the given version of Node.js
   nvm use <version>          use the given version of Node.js in current shell
+  nvm auto-use [action]      automatically use version from .nvmrc, .node-version,
+                             or package.json
+       nvm auto-use enable [--cd]  - enable automatic switching on cd
+         --cd: use cd wrapper mode (more efficient, only triggers on cd command)
+       nvm auto-use disable        - disable automatic switching
   nvm stop                   undo effects of nvm in current shell
                                                                 [aliases: unuse]
   nvm link <version>         permanently link the version of Node.js as default
@@ -335,9 +340,88 @@ doc: https://www.npmjs.com/package/@jchip/nvm
 
 ```
 
+### Auto-Use: Automatic Version Switching
+
+Universal NVM can automatically switch Node.js versions when you change directories. When enabled, it will check for `.nvmrc`, `.node-version`, or `package.json` files and automatically switch to the specified version.
+
+**Quick Start:**
+
+```bash
+# Enable automatic switching (modifies your shell profile)
+nvm auto-use enable
+
+# Enable with cd wrapper mode (more efficient, recommended)
+nvm auto-use enable --cd
+
+# Disable automatic switching
+nvm auto-use disable
+
+# Manually switch to version specified in current directory
+nvm auto-use
+```
+
+**Two modes available:**
+
+Auto-use offers two different modes for triggering version switches:
+
+1. **Prompt-based mode** (default) - Runs on every prompt
+   - ✅ Catches ALL directory changes (cd, pushd, GUI navigation, terminal opening)
+   - ⚠️ Slightly more overhead (runs every time you press Enter)
+   - Best for: Ensuring you never miss a version switch
+
+2. **cd wrapper mode** (`--cd` flag) - Runs only on cd commands
+   - ✅ More efficient (only runs when you actually change directories)
+   - ✅ Cleaner (direct cause and effect)
+   - ⚠️ Misses directory changes from `pushd`, `popd`, or terminal opening in new location
+   - Best for: Performance-conscious users who primarily use `cd`
+
+**Which mode to choose:**
+
+```bash
+# Use prompt-based if you want comprehensive coverage
+nvm auto-use enable
+
+# Use cd wrapper if you prefer efficiency
+nvm auto-use enable --cd
+```
+
+**Note for Zsh users:** Zsh always uses the optimal `chpwd_functions` mechanism (triggers only on actual directory change), so the `--cd` flag has no effect. Zsh users automatically get the best of both worlds!
+
+**What `nvm auto-use enable` does:**
+
+- **Bash/Zsh:** Adds auto-use setup to `~/.bashrc`, `~/.bash_profile`, or `~/.zshrc`
+- **PowerShell:** Adds auto-use setup to your PowerShell profile (`$PROFILE`)
+- Automatically detects your shell and modifies the correct profile file
+
+After enabling, restart your terminal or source your profile:
+```bash
+source ~/.bashrc       # Bash on Linux
+source ~/.bash_profile # Bash on macOS
+source ~/.zshrc        # Zsh
+. $PROFILE             # PowerShell
+```
+
+**How it works:**
+- When you change directories, auto-use checks for version files (`.nvmrc`, `.node-version`, or `package.json`)
+- If found and a different version is needed, it switches and shows: `Using node v20.10.0 (auto-use from .nvmrc)`
+- If the version is already active, it does nothing (fast and silent!)
+- If the version isn't installed, it shows an error **once per shell session**: `Version 16.0.0 from .nvmrc not installed`
+  - The error is only shown once - subsequent `cd` commands won't repeat the same error
+  - This helps you know which version to install without spamming your terminal
+- If no version file is found, it does nothing (no error messages)
+
+**Manual vs Automatic invocation:**
+- **Automatic** (via `cd`/prompt hooks): Uses `--silent` flag to suppress "no version file found" errors
+- **Manual** (typing `nvm auto-use`): Shows all messages including "no version file found" errors
+
+When auto-use is triggered automatically by changing directories, you'll see:
+- ✓ Version switch messages (always shown)
+- ✓ "Version not installed" errors (shown once per shell session)
+- ✗ "No version file found" errors (suppressed)
+
 ### Version Files (.nvmrc, .node-version, and package.json)
 
-When you run `nvm use` without specifying a version, Universal NVM will automatically look for a version specification in the current directory.
+When you run `nvm use` or `nvm auto-use` without specifying a version, Universal NVM will automatically look for a version specification in the current directory.
 
 **Supported sources (in priority order):**
 
@@ -387,9 +471,27 @@ Or with the `v` prefix:
 v20.10.0
 ```
 
-**Semver ranges (package.json only):**
+**Semver ranges:**
 
-The `engines.node` field in `package.json` supports semantic versioning (semver) ranges:
+All version sources support semantic versioning (semver) ranges. Universal NVM will automatically select the **highest installed version** that satisfies the requirement.
+
+**In .nvmrc or .node-version:**
+
+```
+>=18.0.0
+```
+
+```
+^20.0.0
+```
+
+```
+20
+```
+
+**In package.json engines.node:**
+
+The `engines.node` field supports the same semver syntax:
 
 ```json
 {
@@ -415,7 +517,7 @@ The `engines.node` field in `package.json` supports semantic versioning (semver)
 }
 ```
 
-When using semver ranges, Universal NVM will automatically select the **highest installed version** that satisfies the requirement. If no installed version matches, you'll see a helpful error message suggesting which version to install.
+If no installed version matches a semver range, you'll see a helpful error message suggesting which version to install.
 
 **Priority when multiple sources exist:**
 
@@ -443,16 +545,13 @@ $ nvm use
 
 **`.nvmrc`** - Best for teams using traditional nvm:
 - Standard for nvm users
-- Simple exact version specification
+- Supports both exact versions and semver ranges
+- Most familiar to developers using nvm
 
 **`.node-version`** - Best for cross-tool compatibility:
-- Universal standard supported by many version managers:
-  - Universal NVM (this tool)
-  - nodenv
-  - fnm (Fast Node Manager)
-  - asdf-nodejs
-  - volta
-- Makes your project more portable across different tools
+- Universal standard for Node.js version specification
+- Supports both exact versions and semver ranges
+- Makes your project more portable
 
 **`package.json` engines.node** - Best for existing projects:
 - Already part of Node.js ecosystem
@@ -579,9 +678,7 @@ corepack enable
 
 ## nvx - Execute with local node_modules
 
-The `nvx` command allows you to run commands from your local `node_modules/.bin` directory without needing to specify the full path.
-
-Unlike `npx`, which can fetch and execute packages from remote npm registry, `nvx` is simpler and only runs locally installed packages. This makes it faster and more predictable for running project-specific tools.
+The `nvx` command allows you to run commands from your local `node_modules/.bin` directory without needing to specify the full path. It only runs locally installed packages, making it fast and predictable for running project-specific tools.
 
 ### Basic Usage
 

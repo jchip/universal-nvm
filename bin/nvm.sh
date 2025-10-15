@@ -22,7 +22,13 @@ function _jchip_universal_nvm() {
     export NVM_TMPDIR=$TMPDIR
   fi
 
-  $NVM_NODE "$NVM_HOME/dist/nvm.js" --shell=bash $*
+  # Detect shell type - zsh or bash
+  local SHELL_TYPE="bash"
+  if [ -n "$ZSH_VERSION" ]; then
+    SHELL_TYPE="zsh"
+  fi
+
+  $NVM_NODE "$NVM_HOME/dist/nvm.js" --shell=$SHELL_TYPE $*
 
   local TMP_ENV_FILE="$TMPDIR/nvm_env${NVM_RUN_ID}.sh"
 
