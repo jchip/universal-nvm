@@ -3,7 +3,7 @@ param (
     [string]$nvmlink
 )
 
-$nvmVersion = "1.8.4"
+$nvmVersion = "1.9.0"
 $nvmVersionV = "v$nvmVersion"
 $DisableInstallNvmFromTgz = $false
 
