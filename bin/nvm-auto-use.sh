@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Universal NVM auto-use hook
 # This script provides automatic Node.js version switching when changing directories
 #
@@ -37,9 +35,12 @@ _nvm_auto_use() {
 
 # Enable auto-use for Bash
 _nvm_enable_auto_use_bash() {
+  local show_info=false
+  [ "$1" = "--info" ] && show_info=true
+
   # Check if already enabled
   if [[ "$PROMPT_COMMAND" == *"_nvm_auto_use"* ]]; then
-    echo "NVM auto-use is already enabled for Bash"
+    [ "$show_info" = true ] && echo "NVM auto-use is already enabled for Bash"
     return 0
   fi
 
@@ -50,15 +51,20 @@ _nvm_enable_auto_use_bash() {
     export PROMPT_COMMAND="_nvm_auto_use; $PROMPT_COMMAND"
   fi
 
-  echo "NVM auto-use enabled for Bash"
-  echo "Node.js version will automatically switch when you cd into directories with .nvmrc, .node-version, or package.json"
+  if [ "$show_info" = true ]; then
+    echo "NVM auto-use enabled for Bash"
+    echo "Node.js version will automatically switch when you cd into directories with .nvmrc, .node-version, or package.json"
+  fi
 }
 
 # Enable auto-use for Zsh
 _nvm_enable_auto_use_zsh() {
+  local show_info=false
+  [ "$1" = "--info" ] && show_info=true
+
   # Check if already enabled
   if [[ " ${chpwd_functions[*]} " == *" _nvm_auto_use "* ]]; then
-    echo "NVM auto-use is already enabled for Zsh"
+    [ "$show_info" = true ] && echo "NVM auto-use is already enabled for Zsh"
     return 0
   fi
 
@@ -68,8 +74,10 @@ _nvm_enable_auto_use_zsh() {
   fi
   chpwd_functions+=(_nvm_auto_use)
 
-  echo "NVM auto-use enabled for Zsh"
-  echo "Node.js version will automatically switch when you cd into directories with .nvmrc, .node-version, or package.json"
+  if [ "$show_info" = true ]; then
+    echo "NVM auto-use enabled for Zsh"
+    echo "Node.js version will automatically switch when you cd into directories with .nvmrc, .node-version, or package.json"
+  fi
 }
 
 # Disable auto-use for Bash
@@ -101,9 +109,12 @@ _nvm_disable_auto_use_zsh() {
 
 # Enable auto-use for Bash using cd wrapper
 _nvm_enable_auto_use_bash_cd() {
+  local show_info=false
+  [ "$1" = "--info" ] && show_info=true
+
   # Check if already enabled
   if type cd | grep -q "_nvm_auto_use"; then
-    echo "NVM auto-use (cd wrapper) is already enabled for Bash"
+    [ "$show_info" = true ] && echo "NVM auto-use (cd wrapper) is already enabled for Bash"
     return 0
   fi
 
@@ -112,8 +123,10 @@ _nvm_enable_auto_use_bash_cd() {
   eval 'pushd() { builtin pushd "$@" && _nvm_auto_use; }'
   eval 'popd() { builtin popd "$@" && _nvm_auto_use; }'
 
-  echo "NVM auto-use enabled for Bash (cd wrapper mode)"
-  echo "Node.js version will automatically switch when you cd into directories with .nvmrc, .node-version, or package.json"
+  if [ "$show_info" = true ]; then
+    echo "NVM auto-use enabled for Bash (cd wrapper mode)"
+    echo "Node.js version will automatically switch when you cd into directories with .nvmrc, .node-version, or package.json"
+  fi
 }
 
 # Disable auto-use for Bash cd wrapper
@@ -130,25 +143,42 @@ _nvm_disable_auto_use_bash_cd() {
 }
 
 # User-facing enable function (detects shell automatically)
-# Usage: nvm_enable_auto_use [--cd]
+# Usage: nvm_enable_auto_use [--cd] [--info]
 #   --cd: Use cd wrapper mode (Bash only, more efficient)
-#   (default): Use prompt-based mode (catches all directory changes)
+#   --info: Show informational messages
+#   (default): Use prompt-based mode (catches all directory changes), no messages
 nvm_enable_auto_use() {
   local use_cd_wrapper=false
+  local show_info=false
 
-  # Check for --cd flag
-  if [ "$1" = "--cd" ]; then
-    use_cd_wrapper=true
-  fi
+  # Parse flags
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --cd)
+        use_cd_wrapper=true
+        shift
+        ;;
+      --info)
+        show_info=true
+        shift
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  local info_flag=""
+  [ "$show_info" = true ] && info_flag="--info"
 
   if [ -n "$ZSH_VERSION" ]; then
     # Zsh always uses chpwd_functions (already perfect)
-    _nvm_enable_auto_use_zsh
+    _nvm_enable_auto_use_zsh $info_flag
   elif [ -n "$BASH_VERSION" ]; then
     if [ "$use_cd_wrapper" = true ]; then
-      _nvm_enable_auto_use_bash_cd
+      _nvm_enable_auto_use_bash_cd $info_flag
     else
-      _nvm_enable_auto_use_bash
+      _nvm_enable_auto_use_bash $info_flag
     fi
   else
     echo "Warning: Shell detection failed. Are you using Bash or Zsh?"
@@ -183,8 +213,3 @@ nvm_disable_auto_use() {
     return 1
   fi
 }
-
-# Export the functions so they're available in the shell
-export -f _nvm_auto_use 2>/dev/null || true
-export -f nvm_enable_auto_use 2>/dev/null || true
-export -f nvm_disable_auto_use 2>/dev/null || true
