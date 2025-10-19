@@ -1,12 +1,19 @@
 # Universal NVM auto-use hook for PowerShell
 # This script provides automatic Node.js version switching when changing directories
 #
+# Works on both Windows and Unix (macOS/Linux) with PowerShell 7+
+#
 # To enable, add the following to your PowerShell profile ($PROFILE):
-#   . "$Env:NVM_HOME\bin\nvm-auto-use.ps1"
+#   $IsUnix = $PSVersionTable.PSVersion.Major -ge 6 -and ($IsLinux -or $IsMacOS)
+#   $nvmAutoUsePath = if ($IsUnix) { "$Env:NVM_HOME/bin/nvm-auto-use.ps1" } else { "$Env:NVM_HOME\bin\nvm-auto-use.ps1" }
+#   . $nvmAutoUsePath
 #   Enable-NvmAutoUse
 #
 # To find your profile location, run: $PROFILE
 # To create it if it doesn't exist: New-Item -Path $PROFILE -ItemType File -Force
+
+# Detect platform
+$IsUnix = $PSVersionTable.PSVersion.Major -ge 6 -and ($IsLinux -or $IsMacOS)
 
 # Store the original prompt function
 if (-not (Test-Path Function:\_NvmOriginalPrompt)) {
@@ -35,12 +42,24 @@ function _Invoke-NvmAutoUse {
     # Run nvm auto-use if version files exist
     # Only runs if .nvmrc, .node-version, or package.json exists in current directory
     # Use --silent to suppress "no version file found" message
+
+    # Construct nvm command path based on platform
+    $nvmCmd = if ($IsUnix) {
+        if ($Env:NVM_HOME) {
+            "$Env:NVM_HOME/bin/nvm.ps1"
+        } else {
+            "nvm"
+        }
+    } else {
+        "nvm"
+    }
+
     if (Test-Path .nvmrc -PathType Leaf) {
-        nvm auto-use --silent
+        & $nvmCmd auto-use --silent
     } elseif (Test-Path .node-version -PathType Leaf) {
-        nvm auto-use --silent
+        & $nvmCmd auto-use --silent
     } elseif (Test-Path package.json -PathType Leaf) {
-        nvm auto-use --silent
+        & $nvmCmd auto-use --silent
     }
 }
 
@@ -114,12 +133,23 @@ function _NvmCdWrapper {
 
     # Run auto-use if successful
     if ($?) {
+        # Construct nvm command path based on platform
+        $nvmCmd = if ($IsUnix) {
+            if ($Env:NVM_HOME) {
+                "$Env:NVM_HOME/bin/nvm.ps1"
+            } else {
+                "nvm"
+            }
+        } else {
+            "nvm"
+        }
+
         if (Test-Path .nvmrc -PathType Leaf) {
-            nvm auto-use --silent
+            & $nvmCmd auto-use --silent
         } elseif (Test-Path .node-version -PathType Leaf) {
-            nvm auto-use --silent
+            & $nvmCmd auto-use --silent
         } elseif (Test-Path package.json -PathType Leaf) {
-            nvm auto-use --silent
+            & $nvmCmd auto-use --silent
         }
     }
 }
@@ -136,8 +166,41 @@ function Enable-NvmAutoUseCdWrapper {
         return
     }
 
-    # Override Set-Location and cd alias
-    Copy-Item Function:\_NvmCdWrapper Function:\Set-Location -Force
+    # Create a function that shadows the Set-Location cmdlet
+    function global:Set-Location {
+        param([Parameter(ValueFromRemainingArguments=$true)]$Path)
+
+        # Call the original cmdlet
+        if ($Path) {
+            Microsoft.PowerShell.Management\Set-Location @Path
+        } else {
+            Microsoft.PowerShell.Management\Set-Location
+        }
+
+        # Run auto-use if successful
+        if ($?) {
+            # Construct nvm command path based on platform
+            $IsUnix = $PSVersionTable.PSVersion.Major -ge 6 -and ($IsLinux -or $IsMacOS)
+            $nvmCmd = if ($IsUnix) {
+                if ($Env:NVM_HOME) {
+                    "$Env:NVM_HOME/bin/nvm.ps1"
+                } else {
+                    "nvm"
+                }
+            } else {
+                "nvm"
+            }
+
+            if (Test-Path .nvmrc -PathType Leaf) {
+                & $nvmCmd auto-use --silent
+            } elseif (Test-Path .node-version -PathType Leaf) {
+                & $nvmCmd auto-use --silent
+            } elseif (Test-Path package.json -PathType Leaf) {
+                & $nvmCmd auto-use --silent
+            }
+        }
+    }
+
     Set-Alias -Name cd -Value Set-Location -Option AllScope -Force
 
     if (-not $Quiet) {
@@ -148,16 +211,14 @@ function Enable-NvmAutoUseCdWrapper {
 
 # Disable auto-use cd wrapper mode
 function Disable-NvmAutoUseCdWrapper {
-    if ((Test-Path Function:\Set-Location) -and (Get-Content Function:\Set-Location) -notlike "*_NvmCdWrapper*") {
+    if (-not (Test-Path Function:\Set-Location)) {
         Write-Host "NVM auto-use (cd wrapper) is not enabled" -ForegroundColor Yellow
         return
     }
 
-    # Restore original Set-Location
-    if (Test-Path Function:\_NvmOriginalSetLocation) {
-        Copy-Item Function:\_NvmOriginalSetLocation Function:\Set-Location -Force
-        Set-Alias -Name cd -Value Set-Location -Option AllScope -Force
-    }
+    # Remove the Set-Location function to restore the cmdlet
+    Remove-Item Function:\Set-Location -Force
+    Set-Alias -Name cd -Value Set-Location -Option AllScope -Force
 
     Write-Host "NVM auto-use disabled (cd wrapper mode)" -ForegroundColor Green
 }

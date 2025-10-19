@@ -203,6 +203,67 @@ class E2ETestEnv {
   }
 
   /**
+   * Run PowerShell command (for Unix with PowerShell 7)
+   */
+  async runPowerShellCommand(args, options = {}) {
+    const env = {
+      ...process.env,
+      NVM_HOME: this.nvmHome,
+      NVM_LINK: this.nvmLink,
+      ...options.env
+    };
+
+    return new Promise((resolve) => {
+      const child = spawn('pwsh', args, {
+        cwd: options.cwd || this.nvmHome,
+        env
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      child.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      child.on('close', (exitCode) => {
+        resolve({
+          exitCode,
+          stdout,
+          stderr,
+          success: exitCode === 0
+        });
+      });
+
+      child.on('error', (error) => {
+        resolve({
+          exitCode: 1,
+          stdout,
+          stderr: error.message,
+          error,
+          success: false
+        });
+      });
+
+      // Timeout after specified time (default 60s)
+      const timeout = options.timeout || 60000;
+      setTimeout(() => {
+        child.kill();
+        resolve({
+          exitCode: 1,
+          stdout,
+          stderr: 'Command timeout',
+          success: false
+        });
+      }, timeout);
+    });
+  }
+
+  /**
    * Helper to copy directory recursively
    */
   _copyDirRecursive(src, dest) {
