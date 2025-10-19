@@ -1,3 +1,10 @@
+## 1.9.0 Oct 18, 2025
+
+- feat: add --corepack flag to enable corepack after install
+- feat: reads `.node-version` and `engine` from `package.json`
+- feat: use env `http_proxy` and `https_proxy`
+- feat: auto-use looking for `.nvmrc`, `.node-version`, or `engine` in `package.json`
+
 ## 1.8.4 Oct 13, 2025
 
 - fix: support gitbash on windows
