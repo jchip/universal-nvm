@@ -168,6 +168,77 @@ If you want to use Universal NVM with Git Bash after installing on Windows via P
 
 Now you can use `nvm` commands in Git Bash just like on Unix systems.
 
+### Using PowerShell 7 on macOS/Linux
+
+Universal NVM supports PowerShell 7 (pwsh) on macOS and Linux. If you have PowerShell 7 installed, you can use the PowerShell scripts directly on Unix systems.
+
+**Installing PowerShell 7:**
+
+On macOS (using Homebrew):
+```bash
+brew install --cask powershell
+```
+
+On Linux, follow the [official PowerShell installation guide](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux).
+
+**Using nvm in PowerShell on macOS/Linux:**
+
+After installing Universal NVM (via bash/zsh), you can use the PowerShell scripts:
+
+```powershell
+# Set up NVM_HOME
+$Env:NVM_HOME = "$HOME/nvm"
+
+# Add nvm function to your PowerShell profile
+function nvm {
+    & "$Env:NVM_HOME/bin/nvm.ps1" @args
+}
+
+# Use nvm commands
+nvm --version
+nvm ls
+nvm install lts
+nvm use 20
+```
+
+**Enable auto-use in PowerShell:**
+
+PowerShell on macOS/Linux supports the same auto-use functionality as Windows:
+
+```powershell
+# Enable auto-use (adds to $PROFILE)
+nvm auto-use enable
+
+# Enable with cd wrapper mode (recommended)
+nvm auto-use enable --cd
+
+# Reload your profile
+. $PROFILE
+```
+
+The auto-use setup will automatically detect that you're on Unix and configure the correct paths (using forward slashes instead of backslashes).
+
+**Adding to PowerShell Profile:**
+
+To make nvm available in every PowerShell session, add the following to your PowerShell profile (`$PROFILE`):
+
+```powershell
+# Set up Universal NVM for PowerShell on macOS/Linux
+$Env:NVM_HOME = "$HOME/nvm"
+$Env:PATH = "$Env:NVM_HOME/bin:$Env:PATH"
+
+function nvm {
+    & "$Env:NVM_HOME/bin/nvm.ps1" @args
+}
+```
+
+To find your profile location: `$PROFILE` (typically `~/.config/powershell/Microsoft.PowerShell_profile.ps1` on Unix)
+
+To create it if it doesn't exist:
+```powershell
+New-Item -Path $PROFILE -ItemType File -Force
+```
+
 ## Installing Universal NVM on Unix
 
 Because this is implemented in node.js, it happens to work on Unix also. It just need a different install script using bash.
