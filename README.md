@@ -15,19 +15,16 @@ A universal node.js version manager for Windows (no admin) and Unix.
 - [Universal NVM (unvm)](#universal-nvm-unvm)
   - [Table Of Contents](#table-of-contents)
   - [Installing Universal NVM on Windows using PowerShell](#installing-universal-nvm-on-windows-using-powershell)
-    - [Installing from github.com](#installing-from-githubcom)
-    - [Installing from unpkg.com](#installing-from-unpkgcom)
-    - [Installing from jsdelivr.net](#installing-from-jsdelivrnet)
     - [Troubleshooting](#troubleshooting)
       - [Running scripts disabled](#running-scripts-disabled)
       - [No PowerShell - Manual Install](#no-powershell---manual-install)
   - [Installing Universal NVM on Unix](#installing-universal-nvm-on-unix)
-    - [Installing from github.com](#installing-from-githubcom-1)
-    - [Installing from unpkg.com](#installing-from-unpkgcom-1)
-    - [Installing from jsdelivr.net](#installing-from-jsdelivrnet-1)
     - [Shell Initialization on Unix](#shell-initialization-on-unix)
       - [Zsh (macOS default)](#zsh-macos-default)
       - [Bash](#bash)
+  - [Uninstalling Universal NVM](#uninstalling-universal-nvm)
+    - [On Unix (macOS/Linux)](#on-unix-macoslinux)
+    - [On Windows (PowerShell)](#on-windows-powershell)
   - [Usage](#usage)
     - [Environments](#environments)
   - [nvx - Execute with local node_modules](#nvx---execute-with-local-node_modules)
@@ -46,24 +43,7 @@ A universal node.js version manager for Windows (no admin) and Unix.
 
 **_You don't need admin rights to install or use_**, only the permission to execute PowerShell scripts.
 
-Tested on Windows 10 and 11.
-
-To install, start a Windows PowerShell and copy and paste one of the scripts below into the shell terminal and press enter.
-
-**Default installation:** Installs to `$Env:USERPROFILE\.unvm` (e.g., `C:\Users\YourName\.unvm`)
-
-**Custom installation:** Use the `-nvmhome` parameter:
-```powershell
-.\install.ps1 -nvmhome C:\custom-location
-```
-
-Or set `$Env:NVM_HOME` before running the script. If neither is set, a Directory Browser dialog will open to choose a location.
-
-You can retrieve the install script from multiple sources. Listed below are three options for you to choose from in case one of them is down.
-
-### Installing from github.com
-
-Retrieve install script from [github.com](https://www.github.com/jchip/universal-nvm) directly:
+To install, start a Windows PowerShell and copy and paste one of the scripts below into the shell terminal and press enter:
 
 ```powershell
 cd $Env:USERPROFILE;
@@ -72,29 +52,23 @@ Invoke-WebRequest https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/
 del install.ps1
 ```
 
-### Installing from unpkg.com
+Tested on Windows 10 and 11.
 
-Retrieve install script from [unpkg.com](https://unpkg.com):
 
+**Default Location:** Installs to `$Env:USERPROFILE\.unvm` (e.g., `C:\Users\YourName\.unvm`)
+
+**Custom Location:** Use the `-nvmhome` parameter:
 ```powershell
-cd $Env:USERPROFILE;
-Invoke-WebRequest https://unpkg.com/universal-nvm@1.10.1/install.ps1 -OutFile install.ps1;
-.\install.ps1;
-del install.ps1
+.\install.ps1 -nvmhome C:\custom-location
 ```
 
-### Installing from jsdelivr.net
-
-Retrieve install script from [jsdelivr.net](https://www.jsdelivr.com/):
+Or set `$Env:NVM_HOME` before running the script. If neither is set, a Directory Browser dialog will open to choose a location.
 
 ```powershell
-cd $Env:USERPROFILE;
-Invoke-WebRequest https://cdn.jsdelivr.net/npm/universal-nvm@1.10.1/install.ps1 -OutFile install.ps1;
-.\install.ps1;
-del install.ps1
+$Env:NVM_HOME="C:\custom-location"
 ```
 
-### Troubleshooting
+## Troubleshooting
 
 #### Running scripts disabled
 
@@ -225,22 +199,7 @@ New-Item -Path $PROFILE -ItemType File -Force
 
 Because this is implemented in node.js, it happens to work on Unix also. It just need a different install script using bash.
 
-**Default installation directory:** `~/.unvm`
-
-**Custom installation directory:** Set `NVM_HOME` before running the install script:
-```bash
-export NVM_HOME=~/custom-location
-```
-
-To retrieve and run the install script, provided below are three options for you to choose from in case one of them is down.
-
-Please pick one and then copy and paste it into a bash terminal to run.
-
-### Installing from github.com
-
-Retrieve the install script from [github.com](https://www.github.com/jchip/universal-nvm):
-
-Using cURL and the install script:
+To install, using cURL and the install script:
 
 ```bash
 curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/install.sh | bash
@@ -252,39 +211,14 @@ or wget:
 wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/install.sh | bash
 ```
 
-### Installing from unpkg.com
+**Default Location:** `~/.unvm`
 
-Retrieve the install script from [unpkg.com](https://unpkg.com):
-
-Using cURL and the install script:
-
+**Custom Location:** Set `NVM_HOME` before running the install script:
 ```bash
-curl -o- https://unpkg.com/universal-nvm@1.10.1/install.sh | bash
+export NVM_HOME=~/custom-location
 ```
 
-or wget:
-
-```bash
-wget -qO- https://unpkg.com/universal-nvm@1.10.1/install.sh | bash
-```
-
-### Installing from jsdelivr.net
-
-Retrieve the install script from [jsdelivr.net](https://www.jsdelivr.com/):
-
-Using cURL and the install script:
-
-```bash
-curl -o- https://cdn.jsdelivr.net/npm/universal-nvm@1.10.1/install.sh | bash
-```
-
-or wget:
-
-```bash
-wget -qO- https://cdn.jsdelivr.net/npm/universal-nvm@1.10.1/install.sh | bash
-```
-
-### Shell Initialization on Unix
+## Shell Initialization on Unix
 
 The Universal NVM installation automatically updates your shell profile files to initialize nvm. The behavior differs between zsh and bash:
 
@@ -337,6 +271,48 @@ If you need nvm in a bash script, you have three options:
    You can add this to your `.bash_profile` to make it permanent, but be aware this will affect all bash scripts system-wide.
 
 **Note:** This is standard bash behavior by design - non-interactive shells have a minimal environment for performance and predictability.
+
+## Uninstalling Universal NVM
+
+To completely remove Universal NVM from your system.
+
+### On Unix (macOS/Linux):
+
+Using cURL:
+
+```bash
+curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/main/bin/universal-nvm-uninstall.sh | bash
+```
+
+or wget:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/main/bin/universal-nvm-uninstall.sh | bash
+```
+
+The uninstall script will:
+- Remove NVM configuration blocks from shell profiles (`.bashrc`, `.bash_profile`, `.zshrc`, `.zshenv`)
+- Remove the macOS LaunchAgent (`~/Library/LaunchAgents/com.universal-nvm.plist`)
+- Remove the Linux environment configuration (`~/.config/environment.d/10-universal-nvm.conf`)
+- Delete the NVM installation directory (default: `~/.unvm`) and all installed Node.js versions
+
+After running the uninstall script, close and reopen your terminal windows, and log out and log back in to clear environment variables.
+
+### On Windows (PowerShell):
+
+```powershell
+cd $Env:USERPROFILE;
+Invoke-WebRequest https://raw.githubusercontent.com/jchip/universal-nvm/main/bin/universal-nvm-uninstall.ps1 -OutFile universal-nvm-uninstall.ps1;
+.\universal-nvm-uninstall.ps1;
+del universal-nvm-uninstall.ps1
+```
+
+The uninstall script will:
+- Remove `NVM_HOME` and `NVM_LINK` from registry environment variables
+- Remove NVM paths from your user PATH in the registry
+- Delete the NVM installation directory (default: `%USERPROFILE%\.unvm`) and all installed Node.js versions
+
+After running the uninstall script, close and reopen your PowerShell windows, and log out and log back in to clear environment variables.
 
 ## Usage
 
