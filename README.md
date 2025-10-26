@@ -18,7 +18,6 @@ A universal node.js version manager for Windows (no admin) and Unix.
     - [Installing from github.com](#installing-from-githubcom)
     - [Installing from unpkg.com](#installing-from-unpkgcom)
     - [Installing from jsdelivr.net](#installing-from-jsdelivrnet)
-    - [Windows 7 Updates](#windows-7-updates)
     - [Troubleshooting](#troubleshooting)
       - [Running scripts disabled](#running-scripts-disabled)
       - [No PowerShell - Manual Install](#no-powershell---manual-install)
@@ -47,17 +46,15 @@ A universal node.js version manager for Windows (no admin) and Unix.
 
 **_You don't need admin rights to install or use_**, only the permission to execute PowerShell scripts.
 
-Tested on Windows 10, 8.1, and 7. Windows 7 requires PowerShell updates, see [update instructions](#windows-7-updates).
+Tested on Windows 10 and 11.
 
 To install, start a Windows PowerShell and copy and paste one of the scripts below into the shell terminal and press enter.
 
-- This will install nvm and current LTS Node.js (v12.13.0) to directory `nvm` under your home specified by `$Env:USERPROFILE`.
+- This will install nvm and current LTS Node.js to directory `nvm` under your home specified by `$Env:USERPROFILE`.
 
 - If you want to install this under another directory, then set it with the param `-nvmhome`.
 
 - If you don't set it, then `$Env:NVM_HOME` will be checked, and if non-existent, then a Directory Browser dialog will be opened for you to create and choose a directory.
-
-[Video Demo of upgrading Windows 7 to PowerShell 5.1 and then installing this](https://youtu.be/BFYcXLS5R_4)
 
 You can retrieve the install script from multiple sources. Listed below are three options for you to choose from in case one of them is down.
 
@@ -93,24 +90,6 @@ Invoke-WebRequest https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.ps1 -
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
-
-### Windows 7 Updates
-
-PowerShell version 4+ is required.
-
-For Windows 7, you can update it to version 5.1 with the following instructions:
-
-1. Go to <https://www.microsoft.com/en-us/download/details.aspx?id=54616>
-2. Click Red Download button
-3. Download `Win7AndW2K8R2-KB3191566-x64.zip` or `Win7-KB3191566-x86.zip` for 32-bit
-4. Unzip the file
-5. Run the package `Win7AndW2K8R2-KB3191566-x64.msu` or `Win7-KB3191566-x86.msu` for 32-bit
-
-After it's completed and rebooted, launch PowerShell and type `$PSVersionTable` to check.
-
-> PSVersion should be something like `5.1.#####.####`
-
-[Video Demo of upgrading Windows 7 to PowerShell 5.1 and then installing this](https://youtu.be/BFYcXLS5R_4)
 
 ### Troubleshooting
 
