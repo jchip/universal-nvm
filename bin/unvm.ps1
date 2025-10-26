@@ -12,7 +12,7 @@ Try {
     if ( -not (Test-Path $NODE_EXE)) {
       $NODE_EXE = "node"
     }
-    $NVM_JS = "$PSScriptRoot/../dist/nvm.js"
+    $NVM_JS = "$PSScriptRoot/../dist/unvm.js"
   } else {
     # On Windows, look for node.exe in parent directory or fall back to system node
     $NODE_EXE = "$PSScriptRoot\..\node.exe"

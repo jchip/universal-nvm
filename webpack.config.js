@@ -8,7 +8,7 @@ const base = {
   mode: "production",
   devtool: "source-map",
   entry: {
-    "nvm.js": Path.resolve("lib/cli.js")
+    "unvm.js": Path.resolve("lib/cli.js")
   },
   plugins: [
     new webpack.BannerPlugin({

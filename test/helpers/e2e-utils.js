@@ -19,7 +19,7 @@ class E2ETestEnv {
     this.installScriptPath = isWindows
       ? path.join(this.projectRoot, 'install.ps1')
       : path.join(this.projectRoot, 'install.sh');
-    this.distPath = path.join(this.projectRoot, 'dist', 'nvm.js');
+    this.distPath = path.join(this.projectRoot, 'dist', 'unvm.js');
     this.binPath = path.join(this.projectRoot, 'bin');
   }
 
@@ -39,13 +39,13 @@ class E2ETestEnv {
     fs.mkdirSync(testDist, { recursive: true });
     fs.mkdirSync(testBin, { recursive: true });
 
-    // Copy dist/nvm.js
-    fs.copyFileSync(this.distPath, path.join(testDist, 'nvm.js'));
+    // Copy dist/unvm.js
+    fs.copyFileSync(this.distPath, path.join(testDist, 'unvm.js'));
 
     // Copy bin directory files
     this._copyDirRecursive(this.binPath, testBin);
 
-    // Copy package.json (required by dist/nvm.js)
+    // Copy package.json (required by dist/unvm.js)
     const packageJsonPath = path.join(this.projectRoot, 'package.json');
     fs.copyFileSync(packageJsonPath, path.join(this.nvmHome, 'package.json'));
 

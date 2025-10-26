@@ -28,7 +28,7 @@ function _unvm_init() {
     SHELL_TYPE="zsh"
   fi
 
-  $NVM_NODE "$NVM_HOME/dist/nvm.js" --shell=$SHELL_TYPE $*
+  $NVM_NODE "$NVM_HOME/dist/unvm.js" --shell=$SHELL_TYPE $*
 
   local TMP_ENV_FILE="$TMPDIR/nvm_env${NVM_RUN_ID}.sh"
 

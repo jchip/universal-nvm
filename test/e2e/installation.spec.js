@@ -34,10 +34,10 @@ describe('E2E: Installation and Basic Commands', () => {
       expect(env.nvmHome).toContain('nvm-e2e-');
     });
 
-    it('should have dist/nvm.js copied', () => {
+    it('should have dist/unvm.js copied', () => {
       const fs = require('fs');
       const path = require('path');
-      const distFile = path.join(env.nvmHome, 'dist', 'nvm.js');
+      const distFile = path.join(env.nvmHome, 'dist', 'unvm.js');
       expect(fs.existsSync(distFile)).toBe(true);
     });
   });

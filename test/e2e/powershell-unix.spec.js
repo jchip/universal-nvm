@@ -83,7 +83,7 @@ skipIfNotUnixWithPowerShell('E2E: PowerShell 7 on Unix (macOS/Linux)', () => {
       const testScript = `
         $IsUnix = $PSVersionTable.PSVersion.Major -ge 6 -and ($IsLinux -or $IsMacOS)
         if ($IsUnix) {
-          $testPath = "$PSScriptRoot/../dist/nvm.js"
+          $testPath = "$PSScriptRoot/../dist/unvm.js"
           Write-Host "Path: $testPath"
         }
       `;

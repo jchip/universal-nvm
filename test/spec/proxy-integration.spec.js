@@ -183,7 +183,7 @@ describe('Proxy Integration Tests', () => {
  */
 function runNvmCommand(args, options = {}) {
   return new Promise((resolve) => {
-    const child = spawn('node', ['dist/nvm.js', ...args], {
+    const child = spawn('node', ['dist/unvm.js', ...args], {
       ...options,
       env: options.env || process.env
     });
