@@ -94,7 +94,7 @@ skipIfNotUnixWithPowerShell('E2E: PowerShell 7 on Unix (macOS/Linux)', () => {
       const result = await env.runPowerShellCommand(['./bin/test-path.ps1']);
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/Path:.*\/dist\/nvm\.js/);
+      expect(result.stdout).toMatch(/Path:.*\/dist\/unvm\.js/);
 
       // Cleanup
       fs.unlinkSync(scriptPath);

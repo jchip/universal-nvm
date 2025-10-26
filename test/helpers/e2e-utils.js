@@ -89,7 +89,7 @@ class E2ETestEnv {
    * Run nvm command on Windows
    */
   async _runNvmWindows(args, options) {
-    const nvmScript = path.join(this.nvmHome, 'dist', 'nvm.js');
+    const nvmScript = path.join(this.nvmHome, 'dist', 'unvm.js');
 
     return new Promise((resolve) => {
       const child = spawn('node', [nvmScript, ...args], {
@@ -146,7 +146,7 @@ class E2ETestEnv {
    * Run nvm command on Unix (bash)
    */
   async _runNvmUnix(args, options) {
-    const nvmScript = path.join(this.nvmHome, 'dist', 'nvm.js');
+    const nvmScript = path.join(this.nvmHome, 'dist', 'unvm.js');
     const setupScript = path.join(this.nvmHome, 'bin', 'nvm-setup.sh');
 
     // Build bash command that sources setup and runs nvm
