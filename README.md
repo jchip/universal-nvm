@@ -50,11 +50,14 @@ Tested on Windows 10 and 11.
 
 To install, start a Windows PowerShell and copy and paste one of the scripts below into the shell terminal and press enter.
 
-- This will install to directory `.unvm` under your home specified by `$Env:USERPROFILE`.
+**Default installation:** Installs to `$Env:USERPROFILE\.unvm` (e.g., `C:\Users\YourName\.unvm`)
 
-- If you want to install this under another directory, then set it with the param `-nvmhome`.
+**Custom installation:** Use the `-nvmhome` parameter:
+```powershell
+.\install.ps1 -nvmhome C:\custom-location
+```
 
-- If you don't set it, then `$Env:NVM_HOME` will be checked, and if non-existent, then a Directory Browser dialog will be opened for you to create and choose a directory.
+Or set `$Env:NVM_HOME` before running the script. If neither is set, a Directory Browser dialog will open to choose a location.
 
 You can retrieve the install script from multiple sources. Listed below are three options for you to choose from in case one of them is down.
 
@@ -221,6 +224,13 @@ New-Item -Path $PROFILE -ItemType File -Force
 ## Installing Universal NVM on Unix
 
 Because this is implemented in node.js, it happens to work on Unix also. It just need a different install script using bash.
+
+**Default installation directory:** `~/.unvm`
+
+**Custom installation directory:** Set `NVM_HOME` before running the install script:
+```bash
+export NVM_HOME=~/custom-location
+```
 
 To retrieve and run the install script, provided below are three options for you to choose from in case one of them is down.
 
