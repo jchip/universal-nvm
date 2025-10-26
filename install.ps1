@@ -7,8 +7,8 @@ $nvmVersion = "1.9.0"
 $nvmVersionV = "v$nvmVersion"
 $DisableInstallNvmFromTgz = $false
 
-$NVM_ZIP_URL = "https://github.com/jchip/nvm/archive/$nvmVersionV.zip"
-$NVM_TGZ_URL = "https://registry.npmjs.org/@jchip/nvm/-/nvm-$nvmVersion.tgz"
+$NVM_ZIP_URL = "https://github.com/jchip/universal-nvm/archive/$nvmVersionV.zip"
+$NVM_TGZ_URL = "https://registry.npmjs.org/universal-nvm/-/universal-nvm-$nvmVersion.tgz"
 
 $ProgressPreference = "SilentlyContinue"
 

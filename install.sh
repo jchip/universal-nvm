@@ -12,9 +12,9 @@ else
 fi
 
 if [ -n "$NVM_TEST" ]; then
-  NVM_TGZ_URL="https://github.com/jchip/nvm/archive/${NVM_VERSION_V}.tar.gz"
+  NVM_TGZ_URL="https://github.com/jchip/universal-nvm/archive/${NVM_VERSION_V}.tar.gz"
 else
-  NVM_TGZ_URL="https://registry.npmjs.org/@jchip/nvm/-/nvm-${NVM_VERSION}.tgz"
+  NVM_TGZ_URL="https://registry.npmjs.org/universal-nvm/-/universal-nvm-${NVM_VERSION}.tgz"
 fi
 
 if [ -z "${NVM_HOME}" ]; then

@@ -86,7 +86,7 @@ if [ "$1" = "--install-to-user" ]; then
 
     # Create LaunchAgent for persistent GUI app support across reboots
     LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-    PLIST_FILE="$LAUNCH_AGENTS_DIR/com.jchip.universal-nvm.plist"
+    PLIST_FILE="$LAUNCH_AGENTS_DIR/com.universal-nvm.plist"
     mkdir -p "$LAUNCH_AGENTS_DIR" 2>/dev/null
 
     cat > "$PLIST_FILE" << 'PLIST_EOF'
@@ -95,7 +95,7 @@ if [ "$1" = "--install-to-user" ]; then
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.jchip.universal-nvm</string>
+  <string>com.universal-nvm</string>
   <key>ProgramArguments</key>
   <array>
     <string>sh</string>

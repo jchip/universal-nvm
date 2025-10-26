@@ -1,4 +1,4 @@
-# Universal NVM (@jchip/nvm)
+# Universal NVM (unvm)
 
 A universal node.js version manager for Windows (no admin) and Unix.
 
@@ -12,7 +12,7 @@ A universal node.js version manager for Windows (no admin) and Unix.
 
 ## Table Of Contents
 
-- [Universal NVM (@jchip/nvm)](#universal-nvm-jchipnvm)
+- [Universal NVM (unvm)](#universal-nvm-unvm)
   - [Table Of Contents](#table-of-contents)
   - [Installing Universal NVM on Windows using PowerShell](#installing-universal-nvm-on-windows-using-powershell)
     - [Installing from github.com](#installing-from-githubcom)
@@ -63,11 +63,11 @@ You can retrieve the install script from multiple sources. Listed below are thre
 
 ### Installing from github.com
 
-Retrieve install script from [github.com](https://www.github.com/jchip/nvm) directly:
+Retrieve install script from [github.com](https://www.github.com/jchip/universal-nvm) directly:
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://raw.githubusercontent.com/jchip/nvm/v1.9.0/install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -78,7 +78,7 @@ Retrieve install script from [unpkg.com](https://unpkg.com):
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://unpkg.com/@jchip/nvm@1.9.0/install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://unpkg.com/universal-nvm@1.9.0/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -89,7 +89,7 @@ Retrieve install script from [jsdelivr.net](https://www.jsdelivr.com/):
 
 ```powershell
 cd $Env:USERPROFILE;
-Invoke-WebRequest https://cdn.jsdelivr.net/npm/@jchip/nvm@1.9.0/install.ps1 -OutFile install.ps1;
+Invoke-WebRequest https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.ps1 -OutFile install.ps1;
 .\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
 del install.ps1
 ```
@@ -134,7 +134,7 @@ You need to keep this policy if you want to use `nvm` in PowerShell to switch no
 
 If for some reason you absolutely can't have PowerShell or permission to install from it, then you can try to manually install following these steps:
 
-1. Download the package zip file from https://github.com/jchip/nvm/archive/v1.9.0/.zip
+1. Download the package zip file from https://github.com/jchip/universal-nvm/archive/v1.9.0/.zip
    1. Extract this file to your home directory. You will get a new directory `nvm-1.9.0`.
    2. Rename it to `nvm`, for example: `C:\Users\<username>\nvm`
 2. Download the zipfile https://nodejs.org/dist/v20.12.1/node-v20.12.1-win-x64.zip
@@ -249,18 +249,18 @@ Please pick one and then copy and paste it into a bash terminal to run.
 
 ### Installing from github.com
 
-Retrieve the install script from [github.com](https://www.github.com/jchip/nvm):
+Retrieve the install script from [github.com](https://www.github.com/jchip/universal-nvm):
 
 Using cURL and the install script:
 
 ```bash
-export NVM_HOME=~/nvm; curl -o- https://raw.githubusercontent.com/jchip/nvm/v1.9.0/install.sh | bash
+export NVM_HOME=~/nvm; curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-export NVM_HOME=~/nvm; wget -qO- https://raw.githubusercontent.com/jchip/nvm/v1.9.0/install.sh | bash
+export NVM_HOME=~/nvm; wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.sh | bash
 ```
 
 ### Installing from unpkg.com
@@ -270,13 +270,13 @@ Retrieve the install script from [unpkg.com](https://unpkg.com):
 Using cURL and the install script:
 
 ```bash
-export NVM_HOME=~/nvm; curl -o- https://unpkg.com/@jchip/nvm@1.9.0/install.sh | bash
+export NVM_HOME=~/nvm; curl -o- https://unpkg.com/universal-nvm@1.9.0/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-export NVM_HOME=~/nvm; wget -qO- https://unpkg.com/@jchip/nvm@1.9.0/install.sh | bash
+export NVM_HOME=~/nvm; wget -qO- https://unpkg.com/universal-nvm@1.9.0/install.sh | bash
 ```
 
 ### Installing from jsdelivr.net
@@ -286,13 +286,13 @@ Retrieve the install script from [jsdelivr.net](https://www.jsdelivr.com/):
 Using cURL and the install script:
 
 ```bash
-export NVM_HOME=~/nvm; curl -o- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.9.0/install.sh | bash
+export NVM_HOME=~/nvm; curl -o- https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-export NVM_HOME=~/nvm; wget -qO- https://cdn.jsdelivr.net/npm/@jchip/nvm@1.9.0/install.sh | bash
+export NVM_HOME=~/nvm; wget -qO- https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.sh | bash
 ```
 
 ### Shell Initialization on Unix
@@ -407,7 +407,7 @@ Examples:
     nvm use 20
     nvm uninstall 22.3
 
-doc: https://www.npmjs.com/package/@jchip/nvm
+doc: https://www.npmjs.com/package/universal-nvm
 
 ```
 
@@ -816,7 +816,7 @@ The `nvx --install-to-user` command uses platform-specific mechanisms to make Un
 
 **macOS:**
 
-Creates a LaunchAgent at `~/Library/LaunchAgents/com.jchip.universal-nvm.plist` that runs at login to set environment variables for the user session. This makes Universal NVM available to:
+Creates a LaunchAgent at `~/Library/LaunchAgents/com.universal-nvm.plist` that runs at login to set environment variables for the user session. This makes Universal NVM available to:
 - All GUI applications (VS Code, editors, etc.)
 - Terminal windows
 - Background processes
