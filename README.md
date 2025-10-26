@@ -12,38 +12,42 @@ A universal node.js version manager for Windows (no admin) and Unix.
 
 ## Table Of Contents
 
-- [Universal NVM (unvm)](#universal-nvm-unvm)
-  - [Table Of Contents](#table-of-contents)
-  - [Installing Universal NVM on Windows using PowerShell](#installing-universal-nvm-on-windows-using-powershell)
-    - [Troubleshooting](#troubleshooting)
-      - [Running scripts disabled](#running-scripts-disabled)
-      - [No PowerShell - Manual Install](#no-powershell---manual-install)
-  - [Installing Universal NVM on Unix](#installing-universal-nvm-on-unix)
-    - [Shell Initialization on Unix](#shell-initialization-on-unix)
-      - [Zsh (macOS default)](#zsh-macos-default)
-      - [Bash](#bash)
-  - [Uninstalling Universal NVM](#uninstalling-universal-nvm)
-    - [On Unix (macOS/Linux)](#on-unix-macoslinux)
-    - [On Windows (PowerShell)](#on-windows-powershell)
-  - [Usage](#usage)
-    - [Environments](#environments)
-  - [nvx - Execute with local node_modules](#nvx---execute-with-local-node_modules)
-    - [Basic Usage](#basic-usage)
-    - [Show Help](#show-help)
-    - [Installing to PATH (macOS/Linux only)](#installing-to-path-macoslinux-only)
-      - [Install to User PATH (recommended)](#install-to-user-path-recommended)
-      - [Install to System PATH (all users)](#install-to-system-path-all-users)
-      - [How it Works](#how-it-works)
-  - [Contributing and Release](#contributing-and-release)
-    - [Development](#development)
-    - [Release Process](#release-process)
-  - [License](#license)
+- [Installing Universal NVM on Windows using PowerShell](#installing-universal-nvm-on-windows-using-powershell)
+  - [Troubleshooting](#troubleshooting)
+    - [Running scripts disabled](#running-scripts-disabled)
+    - [No PowerShell - Manual Install](#no-powershell---manual-install)
+  - [Using Git Bash on Windows](#using-git-bash-on-windows)
+- [Installing Universal NVM on Unix](#installing-universal-nvm-on-unix)
+  - [Shell Initialization on Unix](#shell-initialization-on-unix)
+    - [Zsh (macOS default)](#zsh-macos-default)
+    - [Bash](#bash)
+  - [Using PowerShell 7 on macOS/Linux](#using-powershell-7-on-macoslinux)
+- [Uninstalling Universal NVM](#uninstalling-universal-nvm)
+  - [On Unix (macOS/Linux)](#on-unix-macoslinux)
+  - [On Windows (PowerShell)](#on-windows-powershell)
+- [Usage](#usage)
+  - [Auto-Use: Automatic Version Switching](#auto-use-automatic-version-switching)
+  - [Version Files (.nvmrc, .node-version, and package.json)](#version-files-nvmrc-node-version-and-packagejson)
+  - [Environments](#environments)
+    - [SSL Certificate Verification (NVM_VERIFY_SSL)](#ssl-certificate-verification-nvm_verify_ssl)
+    - [Corepack Support (NVM_COREPACK_ENABLED)](#corepack-support-nvm_corepack_enabled)
+- [nvx - Execute with local node_modules](#nvx---execute-with-local-node_modules)
+  - [Basic Usage](#basic-usage)
+  - [Show Help](#show-help)
+  - [Installing to PATH (macOS/Linux only)](#installing-to-path-macoslinux-only)
+    - [Install to User PATH (recommended)](#install-to-user-path-recommended)
+    - [Install to System PATH (all users)](#install-to-system-path-all-users)
+    - [How it Works](#how-it-works)
+- [Contributing and Release](#contributing-and-release)
+  - [Development](#development)
+  - [Release Process](#release-process)
+- [License](#license)
 
 ## Installing Universal NVM on Windows using PowerShell
 
 **_You don't need admin rights to install or use_**, only the permission to execute PowerShell scripts.
 
-To install, start a Windows PowerShell and copy and paste one of the scripts below into the shell terminal and press enter:
+To install, start a Windows PowerShell and copy and the scripts below into the shell terminal and press enter:
 
 ```powershell
 cd $Env:USERPROFILE;
@@ -53,7 +57,6 @@ del install.ps1
 ```
 
 Tested on Windows 10 and 11.
-
 
 **Default Location:** Installs to `$Env:USERPROFILE\.unvm` (e.g., `C:\Users\YourName\.unvm`)
 
@@ -68,7 +71,7 @@ Or set `$Env:NVM_HOME` before running the script. If neither is set, a Directory
 $Env:NVM_HOME="C:\custom-location"
 ```
 
-## Troubleshooting
+### Troubleshooting
 
 #### Running scripts disabled
 
@@ -123,6 +126,81 @@ If you want to use Universal NVM with Git Bash after installing on Windows via P
    ```
 
 Now you can use `nvm` commands in Git Bash just like on Unix systems.
+
+## Installing Universal NVM on Unix
+
+To install, using cURL and the install script:
+
+```bash
+curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/install.sh | bash
+```
+
+or wget:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/install.sh | bash
+```
+
+**Default Location:** `~/.unvm`
+
+**Custom Location:** Set `NVM_HOME` before running the install script:
+```bash
+export NVM_HOME=~/custom-location
+```
+
+### Shell Initialization on Unix
+
+The Universal NVM installation automatically updates your shell profile files to initialize nvm. The behavior differs between zsh and bash:
+
+#### Zsh (macOS default)
+
+For zsh users, the installer updates both `.zshenv` and `.zshrc`:
+
+- **`.zshenv`**: Sourced for ALL shells (interactive and non-interactive)
+- **`.zshrc`**: Sourced for interactive shells only
+
+This means:
+- ✅ Terminal sessions have nvm available
+- ✅ Non-interactive scripts have nvm available
+- ✅ GUI applications (like VS Code) have nvm available (when combined with `nvx --install-to-user`)
+
+#### Bash
+
+For bash users, the installer updates `.bashrc` or `.bash_profile`:
+
+- **`.bash_profile`**: Sourced for login shells (macOS default)
+- **`.bashrc`**: Sourced for interactive non-login shells (Linux default)
+- **Non-interactive shells**: NOT sourced by default
+
+This means:
+- ✅ Terminal sessions have nvm available
+- ❌ Non-interactive bash scripts do NOT have nvm by default
+
+**Using nvm in bash scripts:**
+
+If you need nvm in a bash script, you have three options:
+
+1. **Source the profile explicitly** in your script:
+   ```bash
+   #!/bin/bash
+   source ~/.bashrc
+   node --version
+   ```
+
+2. **Use a login shell** with the shebang:
+   ```bash
+   #!/bin/bash -l
+   node --version
+   ```
+
+3. **Set BASH_ENV** to automatically source a file for non-interactive shells:
+   ```bash
+   export BASH_ENV=~/.bashrc
+   ```
+
+   You can add this to your `.bash_profile` to make it permanent, but be aware this will affect all bash scripts system-wide.
+
+**Note:** This is standard bash behavior by design - non-interactive shells have a minimal environment for performance and predictability.
 
 ### Using PowerShell 7 on macOS/Linux
 
@@ -194,83 +272,6 @@ To create it if it doesn't exist:
 ```powershell
 New-Item -Path $PROFILE -ItemType File -Force
 ```
-
-## Installing Universal NVM on Unix
-
-Because this is implemented in node.js, it happens to work on Unix also. It just need a different install script using bash.
-
-To install, using cURL and the install script:
-
-```bash
-curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/install.sh | bash
-```
-
-or wget:
-
-```bash
-wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/v1.10.1/install.sh | bash
-```
-
-**Default Location:** `~/.unvm`
-
-**Custom Location:** Set `NVM_HOME` before running the install script:
-```bash
-export NVM_HOME=~/custom-location
-```
-
-## Shell Initialization on Unix
-
-The Universal NVM installation automatically updates your shell profile files to initialize nvm. The behavior differs between zsh and bash:
-
-#### Zsh (macOS default)
-
-For zsh users, the installer updates both `.zshenv` and `.zshrc`:
-
-- **`.zshenv`**: Sourced for ALL shells (interactive and non-interactive)
-- **`.zshrc`**: Sourced for interactive shells only
-
-This means:
-- ✅ Terminal sessions have nvm available
-- ✅ Non-interactive scripts have nvm available
-- ✅ GUI applications (like VS Code) have nvm available (when combined with `nvx --install-to-user`)
-
-#### Bash
-
-For bash users, the installer updates `.bashrc` or `.bash_profile`:
-
-- **`.bash_profile`**: Sourced for login shells (macOS default)
-- **`.bashrc`**: Sourced for interactive non-login shells (Linux default)
-- **Non-interactive shells**: NOT sourced by default
-
-This means:
-- ✅ Terminal sessions have nvm available
-- ❌ Non-interactive bash scripts do NOT have nvm by default
-
-**Using nvm in bash scripts:**
-
-If you need nvm in a bash script, you have three options:
-
-1. **Source the profile explicitly** in your script:
-   ```bash
-   #!/bin/bash
-   source ~/.bashrc
-   node --version
-   ```
-
-2. **Use a login shell** with the shebang:
-   ```bash
-   #!/bin/bash -l
-   node --version
-   ```
-
-3. **Set BASH_ENV** to automatically source a file for non-interactive shells:
-   ```bash
-   export BASH_ENV=~/.bashrc
-   ```
-
-   You can add this to your `.bash_profile` to make it permanent, but be aware this will affect all bash scripts system-wide.
-
-**Note:** This is standard bash behavior by design - non-interactive shells have a minimal environment for performance and predictability.
 
 ## Uninstalling Universal NVM
 
