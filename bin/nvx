@@ -134,7 +134,7 @@ PLIST_EOF
   elif [ "$OS_TYPE" = "Linux" ]; then
     # Linux: Use systemd user environment.d
     SYSTEMD_ENV_DIR="$HOME/.config/environment.d"
-    ENV_FILE="$SYSTEMD_ENV_DIR/10-jchip-universal-nvm.conf"
+    ENV_FILE="$SYSTEMD_ENV_DIR/10-universal-nvm.conf"
 
     # Check if already installed
     if [ -f "$ENV_FILE" ] && grep -q "$NVM_BIN_PATH" "$ENV_FILE" 2>/dev/null; then

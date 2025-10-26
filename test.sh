@@ -1,4 +1,4 @@
-[ -z $NVM_HOME ] && NVM_HOME=$HOME/nvm
+[ -z $NVM_HOME ] && NVM_HOME=$HOME/.unvm
 mkdir -p $NVM_HOME/bin
 mkdir -p $NVM_HOME/dist
 cp bin/* $NVM_HOME/bin

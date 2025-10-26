@@ -18,7 +18,7 @@ else
 fi
 
 if [ -z "${NVM_HOME}" ]; then
-  export NVM_HOME="$HOME/nvm"
+  export NVM_HOME="$HOME/.unvm"
 fi
 
 function fetch() {

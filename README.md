@@ -50,7 +50,7 @@ Tested on Windows 10 and 11.
 
 To install, start a Windows PowerShell and copy and paste one of the scripts below into the shell terminal and press enter.
 
-- This will install nvm and current LTS Node.js to directory `nvm` under your home specified by `$Env:USERPROFILE`.
+- This will install to directory `.unvm` under your home specified by `$Env:USERPROFILE`.
 
 - If you want to install this under another directory, then set it with the param `-nvmhome`.
 
@@ -65,7 +65,7 @@ Retrieve install script from [github.com](https://www.github.com/jchip/universal
 ```powershell
 cd $Env:USERPROFILE;
 Invoke-WebRequest https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.ps1 -OutFile install.ps1;
-.\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
+.\install.ps1;
 del install.ps1
 ```
 
@@ -76,7 +76,7 @@ Retrieve install script from [unpkg.com](https://unpkg.com):
 ```powershell
 cd $Env:USERPROFILE;
 Invoke-WebRequest https://unpkg.com/universal-nvm@1.9.0/install.ps1 -OutFile install.ps1;
-.\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
+.\install.ps1;
 del install.ps1
 ```
 
@@ -87,7 +87,7 @@ Retrieve install script from [jsdelivr.net](https://www.jsdelivr.com/):
 ```powershell
 cd $Env:USERPROFILE;
 Invoke-WebRequest https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.ps1 -OutFile install.ps1;
-.\install.ps1 -nvmhome $Env:USERPROFILE\nvm;
+.\install.ps1;
 del install.ps1
 ```
 
@@ -114,7 +114,7 @@ You need to keep this policy if you want to use `nvm` in PowerShell to switch no
 If for some reason you absolutely can't have PowerShell or permission to install from it, then you can try to manually install following these steps:
 
 1. Download the package zip file from https://github.com/jchip/universal-nvm/archive/v1.9.0/.zip
-   1. Extract this file to your home directory. You will get a new directory `nvm-1.9.0`.
+   1. Extract this file to your home directory. You will get a new directory `universal-nvm-1.9.0`.
    2. Rename it to `nvm`, for example: `C:\Users\<username>\nvm`
 2. Download the zipfile https://nodejs.org/dist/v20.12.1/node-v20.12.1-win-x64.zip
    1. Extract this file to `C:\Users\<username>\nvm`. You will get a new directory `node-v20.12.1-win-x64`
@@ -166,7 +166,7 @@ After installing Universal NVM (via bash/zsh), you can use the PowerShell script
 
 ```powershell
 # Set up NVM_HOME
-$Env:NVM_HOME = "$HOME/nvm"
+$Env:NVM_HOME = "$HOME/.unvm"
 
 # Add nvm function to your PowerShell profile
 function nvm {
@@ -203,7 +203,7 @@ To make nvm available in every PowerShell session, add the following to your Pow
 
 ```powershell
 # Set up Universal NVM for PowerShell on macOS/Linux
-$Env:NVM_HOME = "$HOME/nvm"
+$Env:NVM_HOME = "$HOME/.unvm"
 $Env:PATH = "$Env:NVM_HOME/bin:$Env:PATH"
 
 function nvm {
@@ -233,13 +233,13 @@ Retrieve the install script from [github.com](https://www.github.com/jchip/unive
 Using cURL and the install script:
 
 ```bash
-export NVM_HOME=~/nvm; curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.sh | bash
+curl -o- https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-export NVM_HOME=~/nvm; wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/jchip/universal-nvm/v1.9.0/install.sh | bash
 ```
 
 ### Installing from unpkg.com
@@ -249,13 +249,13 @@ Retrieve the install script from [unpkg.com](https://unpkg.com):
 Using cURL and the install script:
 
 ```bash
-export NVM_HOME=~/nvm; curl -o- https://unpkg.com/universal-nvm@1.9.0/install.sh | bash
+curl -o- https://unpkg.com/universal-nvm@1.9.0/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-export NVM_HOME=~/nvm; wget -qO- https://unpkg.com/universal-nvm@1.9.0/install.sh | bash
+wget -qO- https://unpkg.com/universal-nvm@1.9.0/install.sh | bash
 ```
 
 ### Installing from jsdelivr.net
@@ -265,13 +265,13 @@ Retrieve the install script from [jsdelivr.net](https://www.jsdelivr.com/):
 Using cURL and the install script:
 
 ```bash
-export NVM_HOME=~/nvm; curl -o- https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.sh | bash
+curl -o- https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.sh | bash
 ```
 
 or wget:
 
 ```bash
-export NVM_HOME=~/nvm; wget -qO- https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.sh | bash
+wget -qO- https://cdn.jsdelivr.net/npm/universal-nvm@1.9.0/install.sh | bash
 ```
 
 ### Shell Initialization on Unix
@@ -801,21 +801,21 @@ Creates a LaunchAgent at `~/Library/LaunchAgents/com.universal-nvm.plist` that r
 - Background processes
 
 The LaunchAgent adds both paths to your environment:
-- `~/nvm/bin` - nvm commands (nvm, nvx)
-- `~/nvm/nodejs/bin` - Node.js executables (node, npm) - only available after running `nvm link <version>`
+- `~/.unvm/bin` - nvm commands (nvm, nvx)
+- `~/.unvm/nodejs/bin` - Node.js executables (node, npm) - only available after running `nvm link <version>`
 
 **Linux:**
 
-Creates a systemd user environment file at `~/.config/environment.d/10-jchip-universal-nvm.conf`. This file is read by systemd-based desktop environments at login and makes Universal NVM available to:
+Creates a systemd user environment file at `~/.config/environment.d/10-universal-nvm.conf`. This file is read by systemd-based desktop environments at login and makes Universal NVM available to:
 - All GUI applications launched from the desktop
 - Applications started by systemd user services
 - Any process in your user session
 
 The environment file adds both paths:
-- `~/nvm/bin` - nvm commands (nvm, nvx)
-- `~/nvm/nodejs/bin` - Node.js executables (node, npm) - only available after running `nvm link <version>`
+- `~/.unvm/bin` - nvm commands (nvm, nvx)
+- `~/.unvm/nodejs/bin` - Node.js executables (node, npm) - only available after running `nvm link <version>`
 
-**Important:** The `~/nvm/nodejs/bin` directory is a symlink created by `nvm link <version>` that points to the default Node.js version. You must run `nvm link` to set up a default Node.js version before GUI applications can access node and npm. The install script does this automatically.
+**Important:** The `~/.unvm/nodejs/bin` directory is a symlink created by `nvm link <version>` that points to the default Node.js version. You must run `nvm link` to set up a default Node.js version before GUI applications can access node and npm. The install script does this automatically.
 
 **Note:** On Linux systems not using systemd, this feature may not work. In that case, you can manually add the paths to your `~/.profile` or consult your distribution's documentation for setting user environment variables.
 

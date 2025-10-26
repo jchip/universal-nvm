@@ -28,8 +28,10 @@ _nvm_auto_use() {
   # Run nvm auto-use, which checks for .nvmrc, .node-version, or package.json
   # Shows message when switching versions
   # Use --silent to suppress "no version file found" message
-  if type _jchip_universal_nvm >/dev/null 2>&1; then
-    _jchip_universal_nvm auto-use --silent
+  if type _unvm_init >/dev/null 2>&1; then
+    _unvm_init auto-use --silent
+  elif type unvm >/dev/null 2>&1; then
+    unvm auto-use --silent
   fi
 }
 
