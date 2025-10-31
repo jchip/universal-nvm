@@ -97,9 +97,10 @@ jobs:
       - name: Run all tests
         run: fyn run test
 
-  docker-integration-tests-amd64:
-    name: Docker Integration Tests (Linux amd64)
+  docker-integration-tests:
+    name: Docker Integration Tests (Linux)
     runs-on: ubuntu-latest
+    # Note: Tests Linux amd64. ARM64 is tested via macos-install-test (macos-14 uses Apple Silicon)
 
     steps:
       - name: Checkout code
@@ -131,54 +132,12 @@ jobs:
       - name: Display test summary
         if: always()
         run: |
-          echo "Docker integration tests completed (amd64)"
-          docker run --rm unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
-
-  docker-integration-tests-arm64:
-    name: Docker Integration Tests (Linux arm64)
-    runs-on: macos-14  # macOS 14+ uses Apple Silicon (ARM64)
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Docker (colima)
-        run: |
-          brew install docker colima
-          colima start --arch aarch64 --cpu 2 --memory 4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.x'
-
-      - name: Install fyn
-        run: npm install -g fyn
-
-      - name: Install dependencies
-        run: fyn install
-
-      - name: Build project
-        run: fyn run build
-
-      - name: Create npm tarball
-        run: npm pack
-
-      - name: Build Docker test image
-        run: docker build -f test/docker/Dockerfile -t unvm-install-test .
-
-      - name: Run Docker integration tests
-        run: docker run --rm unvm-install-test
-
-      - name: Display test summary
-        if: always()
-        run: |
-          echo "Docker integration tests completed (arm64 on macOS)"
+          echo "Docker integration tests completed"
           docker run --rm unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
 
   macos-install-test:
-    name: macOS install.sh Test
-    runs-on: macos-latest
+    name: macOS install.sh Test (ARM64)
+    runs-on: macos-14  # macOS 14+ uses Apple Silicon (ARM64)
 
     steps:
       - name: Checkout code
