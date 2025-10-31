@@ -1,6 +1,22 @@
+# Testing Installation Scripts on GitHub Actions
+
+This guide explains how to test installation scripts across all platforms using GitHub Actions.
+
+## Overview
+
+We have **automated installation tests** for all three platforms:
+
+- **Linux** → Docker integration tests (31 tests: bash, zsh, PowerShell, uninstall)
+- **macOS** → install.sh test (bash/zsh integration, nvm commands)
+- **Windows** → install.ps1 test (PowerShell, registry, Node.js download)
+
+All tests run automatically on every push/PR.
+
+---
+
 # Testing install.ps1 Without a Windows Machine
 
-This guide explains how to test the Windows PowerShell installer (`install.ps1`) when developing on macOS or Linux.
+This section explains how to test the Windows PowerShell installer (`install.ps1`) when developing on macOS or Linux.
 
 ## Option 1: GitHub Actions (Recommended) ✅
 

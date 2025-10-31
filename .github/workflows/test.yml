@@ -134,6 +134,169 @@ jobs:
           echo "Docker integration tests completed"
           docker run --rm unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
 
+  macos-install-test:
+    name: macOS install.sh Test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Build project
+        run: fyn run build
+
+      - name: Create npm tarball
+        run: npm pack
+
+      - name: Test install.sh
+        shell: bash
+        run: |
+          # Set test environment to avoid modifying the actual user environment
+          export NVM_HOME="$HOME/.unvm-test"
+          export NVM_LINK="$NVM_HOME/nodejs/bin"
+
+          # Create a test tarball URL
+          TARBALL=$(ls -t universal-nvm-*.tgz | head -1)
+          export NVM_TGZ_URL="file://$(pwd)/$TARBALL"
+          export NVM_TEST="1"
+
+          echo "=== Running install.sh ==="
+          bash install.sh
+
+          echo ""
+          echo "=== Verification ==="
+
+          # Check NVM_HOME directory exists
+          if [ -d "$NVM_HOME" ]; then
+            echo "✓ NVM_HOME directory created: $NVM_HOME"
+          else
+            echo "✗ NVM_HOME directory not found"
+            exit 1
+          fi
+
+          # Check bin directory exists
+          if [ -d "$NVM_HOME/bin" ]; then
+            echo "✓ bin directory exists"
+          else
+            echo "✗ bin directory not found"
+            exit 1
+          fi
+
+          # Check nvm.sh exists
+          if [ -f "$NVM_HOME/bin/nvm.sh" ]; then
+            echo "✓ nvm.sh installed"
+          else
+            echo "✗ nvm.sh not found"
+            exit 1
+          fi
+
+          # Check unvm.sh exists
+          if [ -f "$NVM_HOME/bin/unvm.sh" ]; then
+            echo "✓ unvm.sh installed"
+          else
+            echo "✗ unvm.sh not found"
+            exit 1
+          fi
+
+          # Check node binary exists
+          if [ -f "$NVM_HOME/node" ]; then
+            echo "✓ node binary downloaded"
+          else
+            echo "✗ node binary not found"
+            exit 1
+          fi
+
+          # Check uninstall script exists
+          if [ -f "$NVM_HOME/bin/universal-nvm-uninstall.sh" ]; then
+            echo "✓ uninstall script installed"
+          else
+            echo "✗ uninstall script not found"
+            exit 1
+          fi
+
+          # Source nvm and test commands
+          export PATH="$NVM_HOME/bin:$PATH"
+          source "$NVM_HOME/bin/nvm.sh"
+
+          # Test nvm command
+          if nvm --version > /dev/null 2>&1; then
+            echo "✓ nvm command works"
+            nvm --version
+          else
+            echo "✗ nvm command failed"
+            exit 1
+          fi
+
+          # Test node command
+          NODE_VERSION=$("$NVM_HOME/node" --version)
+          echo "✓ Node.js version: $NODE_VERSION"
+
+          # Test bash integration
+          if grep -q "NVM bash initialize" "$HOME/.bashrc" 2>/dev/null; then
+            echo "✓ bash profile updated"
+          else
+            echo "⚠ bash profile not updated (expected if .bashrc doesn't exist)"
+          fi
+
+          # Test zsh integration
+          if grep -q "NVM zsh initialize" "$HOME/.zshrc" 2>/dev/null; then
+            echo "✓ zsh profile updated"
+          else
+            echo "⚠ zsh profile not updated (expected if .zshrc doesn't exist)"
+          fi
+
+          echo ""
+          echo "=== All checks passed! ==="
+
+      - name: Test nvm commands
+        shell: bash
+        run: |
+          export NVM_HOME="$HOME/.unvm-test"
+          export PATH="$NVM_HOME/bin:$PATH"
+          source "$NVM_HOME/bin/nvm.sh"
+
+          echo "=== Testing nvm commands ==="
+
+          # Test nvm ls (list installed versions)
+          echo "Testing: nvm ls"
+          nvm ls
+
+          # Test nvm ls-remote (this will use cache or fail gracefully)
+          echo "Testing: nvm ls-remote"
+          nvm ls-remote | head -5 || echo "ls-remote skipped (network/cache)"
+
+          echo "✓ nvm commands work"
+
+      - name: Cleanup test installation
+        if: always()
+        shell: bash
+        run: |
+          TEST_DIR="$HOME/.unvm-test"
+          if [ -d "$TEST_DIR" ]; then
+            rm -rf "$TEST_DIR"
+            echo "Cleaned up test directory: $TEST_DIR"
+          fi
+
+          # Clean up shell profile modifications
+          if [ -f "$HOME/.bashrc" ]; then
+            sed -i.bak '/# NVM bash initialize BEGIN/,/# NVM bash initialize END/d' "$HOME/.bashrc" 2>/dev/null || true
+          fi
+
+          if [ -f "$HOME/.zshrc" ]; then
+            sed -i.bak '/# NVM zsh initialize BEGIN/,/# NVM zsh initialize END/d' "$HOME/.zshrc" 2>/dev/null || true
+          fi
+
   windows-install-test:
     name: Windows install.ps1 Test
     runs-on: windows-latest
