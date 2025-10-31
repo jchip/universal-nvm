@@ -133,3 +133,95 @@ jobs:
         run: |
           echo "Docker integration tests completed"
           docker run --rm unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
+
+  windows-install-test:
+    name: Windows install.ps1 Test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Build project
+        run: fyn run build
+
+      - name: Test install.ps1
+        shell: pwsh
+        run: |
+          # Set test mode to skip GUI dialogs
+          $env:NVM_HOME = "$env:USERPROFILE\.unvm-test"
+          $env:NVM_LINK = "$env:USERPROFILE\.unvm-test\nodejs\bin"
+
+          # Run the installer
+          .\install.ps1 -nvmhome $env:NVM_HOME -nvmlink $env:NVM_LINK
+
+          # Verify installation
+          Write-Host "`n=== Verification ==="
+
+          # Check NVM_HOME directory exists
+          if (Test-Path $env:NVM_HOME) {
+            Write-Host "✓ NVM_HOME directory created: $env:NVM_HOME"
+          } else {
+            Write-Error "✗ NVM_HOME directory not found"
+            exit 1
+          }
+
+          # Check bin directory exists
+          if (Test-Path "$env:NVM_HOME\bin") {
+            Write-Host "✓ bin directory exists"
+          } else {
+            Write-Error "✗ bin directory not found"
+            exit 1
+          }
+
+          # Check nvm.ps1 exists
+          if (Test-Path "$env:NVM_HOME\bin\nvm.ps1") {
+            Write-Host "✓ nvm.ps1 installed"
+          } else {
+            Write-Error "✗ nvm.ps1 not found"
+            exit 1
+          }
+
+          # Check node.exe exists
+          if (Test-Path "$env:NVM_HOME\node.exe") {
+            Write-Host "✓ node.exe downloaded"
+          } else {
+            Write-Error "✗ node.exe not found"
+            exit 1
+          }
+
+          # Test nvm command
+          & "$env:NVM_HOME\bin\nvm.ps1" --version
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ nvm command works"
+          } else {
+            Write-Error "✗ nvm command failed"
+            exit 1
+          }
+
+          # Test node command
+          $nodeVersion = & "$env:NVM_HOME\node.exe" --version
+          Write-Host "✓ Node.js version: $nodeVersion"
+
+          Write-Host "`n=== All checks passed! ==="
+
+      - name: Cleanup test installation
+        if: always()
+        shell: pwsh
+        run: |
+          $testDir = "$env:USERPROFILE\.unvm-test"
+          if (Test-Path $testDir) {
+            Remove-Item -Path $testDir -Recurse -Force
+            Write-Host "Cleaned up test directory: $testDir"
+          }
