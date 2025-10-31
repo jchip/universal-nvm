@@ -97,14 +97,9 @@ jobs:
       - name: Run all tests
         run: fyn run test
 
-  docker-integration-tests:
-    name: Docker Integration Tests (Linux ${{ matrix.arch }})
+  docker-integration-tests-amd64:
+    name: Docker Integration Tests (Linux amd64)
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [amd64, arm64]
 
     steps:
       - name: Checkout code
@@ -127,26 +122,54 @@ jobs:
       - name: Create npm tarball
         run: npm pack
 
-      - name: Set up QEMU for multi-arch
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Build Docker test image
-        run: docker buildx build --platform linux/${{ matrix.arch }} --load -f test/docker/Dockerfile -t unvm-install-test .
+        run: docker build -f test/docker/Dockerfile -t unvm-install-test .
 
       - name: Run Docker integration tests
-        run: docker run --rm --platform linux/${{ matrix.arch }} unvm-install-test
+        run: docker run --rm unvm-install-test
 
       - name: Display test summary
         if: always()
         run: |
-          echo "Docker integration tests completed (${{ matrix.arch }})"
-          docker run --rm --platform linux/${{ matrix.arch }} unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
+          echo "Docker integration tests completed (amd64)"
+          docker run --rm unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
+
+  docker-integration-tests-arm64:
+    name: Docker Integration Tests (Linux arm64)
+    runs-on: macos-14  # macOS 14+ uses Apple Silicon (ARM64)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Build project
+        run: fyn run build
+
+      - name: Create npm tarball
+        run: npm pack
+
+      - name: Build Docker test image
+        run: docker build -f test/docker/Dockerfile -t unvm-install-test .
+
+      - name: Run Docker integration tests
+        run: docker run --rm unvm-install-test
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "Docker integration tests completed (arm64 on macOS)"
+          docker run --rm unvm-install-test 2>&1 | grep -E "(Test Summary|Tests Passed|Tests Failed|All tests)" || true
 
   macos-install-test:
     name: macOS install.sh Test
