@@ -319,15 +319,22 @@ jobs:
       - name: Build project
         run: fyn run build
 
+      - name: Create npm tarball
+        run: npm pack
+
       - name: Test install.ps1
         shell: pwsh
         run: |
-          # Set test mode to skip GUI dialogs
           $env:NVM_HOME = "$env:USERPROFILE\.unvm-test"
           $env:NVM_LINK = "$env:USERPROFILE\.unvm-test\nodejs\bin"
 
-          # Run the installer
-          .\install.ps1 -nvmhome $env:NVM_HOME -nvmlink $env:NVM_LINK
+          Write-Host "Running install.ps1 with:"
+          Write-Host "  NVM_HOME: $env:NVM_HOME"
+          Write-Host "  NVM_LINK: $env:NVM_LINK"
+          Write-Host "  Test mode: enabled (will use local tarball)"
+
+          # Run the installer with --test flag to use local tarball
+          .\install.ps1 -nvmhome $env:NVM_HOME -nvmlink $env:NVM_LINK -test
 
           # Verify installation
           Write-Host "`n=== Verification ==="

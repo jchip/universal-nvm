@@ -1,6 +1,7 @@
 param (
     [string]$nvmhome,
-    [string]$nvmlink
+    [string]$nvmlink,
+    [switch]$test
 )
 
 $nvmVersion = "1.10.1"
@@ -279,8 +280,20 @@ function installNvmFromTgz() {
 
     $nvmDestTgzFile = "$NVM_CACHE\nvm-$nvmVersionV.tgz"
 
-    Write-Output "Retrieving $nvmTgzUrl"
-    Invoke-WebRequest $nvmTgzUrl -OutFile $nvmDestTgzFile
+    # In test mode, look for local tarball first
+    if ($test) {
+        $localTarball = Get-ChildItem -Filter "universal-nvm-*.tgz" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($localTarball) {
+            Write-Output "Test mode: Using local tarball $($localTarball.Name)"
+            Copy-Item $localTarball.FullName $nvmDestTgzFile -Force
+        } else {
+            Write-Output "Test mode: No local tarball found, downloading from $nvmTgzUrl"
+            Invoke-WebRequest $nvmTgzUrl -OutFile $nvmDestTgzFile
+        }
+    } else {
+        Write-Output "Retrieving $nvmTgzUrl"
+        Invoke-WebRequest $nvmTgzUrl -OutFile $nvmDestTgzFile
+    }
 
     & "$Env:SystemRoot\system32\tar.exe" -xf "$nvmDestTgzFile" -C "$NVM_HOME"
     Copy-Item "$NVM_HOME\package\*" "$NVM_HOME" -Force -Recurse

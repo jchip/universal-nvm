@@ -179,8 +179,16 @@ describe('Proxy Integration Tests', () => {
     }, 30000);
 
     it('should use proxy from HTTP_PROXY env var', async () => {
+      // Create clean env without higher-priority proxy vars
+      const cleanEnv = { ...process.env };
+      delete cleanEnv.NVM_PROXY;
+      delete cleanEnv.https_proxy;
+      delete cleanEnv.HTTPS_PROXY;
+      delete cleanEnv.http_proxy;
+      cleanEnv.HTTP_PROXY = proxyUrl;
+
       const result = await runNvmCommand(['ls-remote'], {
-        env: { ...process.env, HTTP_PROXY: proxyUrl }
+        env: cleanEnv
       });
 
       expect(result.exitCode).toBe(0);
