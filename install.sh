@@ -11,10 +11,12 @@ else
   TAR_WILDCARDS_OPT=""
 fi
 
-if [ -n "$NVM_TEST" ]; then
-  NVM_TGZ_URL="https://github.com/jchip/universal-nvm/archive/${NVM_VERSION_V}.tar.gz"
-else
-  NVM_TGZ_URL="https://registry.npmjs.org/universal-nvm/-/universal-nvm-${NVM_VERSION}.tgz"
+if [ -z "$NVM_TGZ_URL" ]; then
+  if [ -n "$NVM_TEST" ]; then
+    NVM_TGZ_URL="https://github.com/jchip/universal-nvm/archive/${NVM_VERSION_V}.tar.gz"
+  else
+    NVM_TGZ_URL="https://registry.npmjs.org/universal-nvm/-/universal-nvm-${NVM_VERSION}.tgz"
+  fi
 fi
 
 if [ -z "${NVM_HOME}" ]; then
@@ -22,15 +24,32 @@ if [ -z "${NVM_HOME}" ]; then
 fi
 
 function fetch() {
+  # Handle file:// URLs with cp for reliability
+  if [[ "$1" == file://* ]]; then
+    local file_path="${1#file://}"
+    cp "$file_path" "$2"
+    return $?
+  fi
+
+  # In test mode, skip SSL verification to avoid certificate issues in containers
+  local curl_opts="--fail -L"
+  if [ -n "$NVM_TEST" ]; then
+    curl_opts="$curl_opts --insecure"
+  fi
+
   curl=$(which curl)
   if [ "$?" = "0" ]; then
-    curl --fail -L $1 -o $2
+    curl $curl_opts $1 -o $2
     return $?
   fi
 
   wget=$(which wget)
   if [ "$?" = "0" ]; then
-    wget "$1" --output-document="$2"
+    if [ -n "$NVM_TEST" ]; then
+      wget --no-check-certificate "$1" --output-document="$2"
+    else
+      wget "$1" --output-document="$2"
+    fi
     return $?
   fi
 
@@ -77,6 +96,9 @@ function getArch() {
       ;;
     i686 | i386)
       echo "x86"
+      ;;
+    aarch64)
+      echo "arm64"
       ;;
     *)
       uname -m | tr "[:upper:]" "[:lower:]"
@@ -136,19 +158,37 @@ function installNvm() {
   echo "Fetching ${NVM_TGZ_URL}"
   fetch "${NVM_TGZ_URL}" "${nvmDestTgzFile}"
 
-  local nvm_files
-  nvm_files="$(tmpdir)/nvm_files.txt"
-  cat >${nvm_files}<<EOF
-*/bin
-*/dist
-*/package.json
-EOF
+  # Extract to temporary directory first
+  local temp_extract="$(tmpdir)/nvm_extract_$$"
+  mkdir -p "$temp_extract"
 
-  tar ${TAR_WILDCARDS_OPT} -xzf "${nvmDestTgzFile}" --directory="${NVM_HOME}" --strip=1 --files-from="$nvm_files"
+  tar -xzf "${nvmDestTgzFile}" -C "$temp_extract" --strip=1
 
-  # Ensure nvx has execute permissions
+  # Copy only what we need
+  if [ -d "$temp_extract/bin" ]; then
+    mkdir -p "${NVM_HOME}/bin"
+    cp -r "$temp_extract/bin/"* "${NVM_HOME}/bin/"
+  fi
+
+  if [ -d "$temp_extract/dist" ]; then
+    mkdir -p "${NVM_HOME}/dist"
+    cp -r "$temp_extract/dist/"* "${NVM_HOME}/dist/"
+  fi
+
+  if [ -f "$temp_extract/package.json" ]; then
+    cp "$temp_extract/package.json" "${NVM_HOME}/"
+  fi
+
+  # Clean up temp directory
+  rm -rf "$temp_extract"
+
+  # Ensure executables have execute permissions
   if [ -f "${NVM_HOME}/bin/nvx" ]; then
     chmod +x "${NVM_HOME}/bin/nvx"
+  fi
+
+  if [ -f "${NVM_HOME}/bin/universal-nvm-uninstall.sh" ]; then
+    chmod +x "${NVM_HOME}/bin/universal-nvm-uninstall.sh"
   fi
 }
 
