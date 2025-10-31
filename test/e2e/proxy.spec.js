@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { createE2EEnv } from '../helpers/e2e-utils.js';
 import { createTestProxy } from '../helpers/proxy-utils.js';
+import fs from 'fs';
+import path from 'path';
 
 describe('E2E: Proxy Support', () => {
   let env;
@@ -18,6 +20,18 @@ describe('E2E: Proxy Support', () => {
     }
     if (env) {
       await env.cleanup();
+    }
+  });
+
+  beforeEach(async () => {
+    // Clear remote versions cache before each test to ensure HTTP requests are made
+    const cachePath = path.join(env.nvmHome, 'cache', 'remote-versions.json');
+    try {
+      if (fs.existsSync(cachePath)) {
+        fs.unlinkSync(cachePath);
+      }
+    } catch (err) {
+      // Ignore errors if cache doesn't exist
     }
   });
 

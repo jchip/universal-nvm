@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { spawn } from 'child_process';
 import { createTestProxy, createErrorProxy, makeProxyRequest, assertProxyLogged } from '../helpers/proxy-utils.js';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const common = require("../../lib/common");
 
@@ -24,6 +27,17 @@ describe('Proxy Integration Tests', () => {
   beforeEach(() => {
     // Clear logs before each test
     proxy.clearLogs();
+
+    // Clear remote versions cache before each test to ensure HTTP requests are made
+    const nvmHome = process.env.NVM_HOME || path.join(os.homedir(), '.unvm');
+    const cachePath = path.join(nvmHome, 'cache', 'remote-versions.json');
+    try {
+      if (fs.existsSync(cachePath)) {
+        fs.unlinkSync(cachePath);
+      }
+    } catch (err) {
+      // Ignore errors if cache doesn't exist
+    }
   });
 
   describe('Test Proxy Server', () => {
@@ -68,7 +82,7 @@ describe('Proxy Integration Tests', () => {
 
   describe('common.getRemoteFromJson with proxy', () => {
     it('should fetch versions through test proxy', async () => {
-      const versions = await common.getRemoteFromJson(proxyUrl, true);
+      const versions = await common.getRemoteFromJson(proxyUrl, true, undefined, false);
 
       expect(versions).toBeInstanceOf(Array);
       expect(versions.length).toBeGreaterThan(0);
@@ -83,11 +97,11 @@ describe('Proxy Integration Tests', () => {
 
     it('should respect verifyssl parameter', async () => {
       // With SSL verification
-      const versionsWithSSL = await common.getRemoteFromJson(proxyUrl, true);
+      const versionsWithSSL = await common.getRemoteFromJson(proxyUrl, true, undefined, false);
       expect(versionsWithSSL).toBeInstanceOf(Array);
 
       // Without SSL verification (should still work with our test proxy)
-      const versionsNoSSL = await common.getRemoteFromJson(proxyUrl, false);
+      const versionsNoSSL = await common.getRemoteFromJson(proxyUrl, false, undefined, false);
       expect(versionsNoSSL).toBeInstanceOf(Array);
     }, 30000);
   });
