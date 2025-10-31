@@ -19,7 +19,7 @@ Try {
     if ( -not (Test-Path $NODE_EXE)) {
       $NODE_EXE = "node"
     }
-    $NVM_JS = "$PSScriptRoot\..\dist\nvm.js"
+    $NVM_JS = "$PSScriptRoot\..\dist\unvm.js"
   }
 
   & $NODE_EXE $NVM_JS --shell=powershell $args
