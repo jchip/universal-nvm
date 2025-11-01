@@ -1,3 +1,8 @@
+## 1.11.0 Nov 1, 2025
+
+- feat: `nvm link lts` and `nvm link latest` support
+- feat: add uninstall scripts for Unix and Windows
+
 ## 1.9.0 Oct 18, 2025
 
 - feat: add --corepack flag to enable corepack after install
