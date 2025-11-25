@@ -275,26 +275,39 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-# Check if ./node_modules/.bin exists
-if [ -d "./node_modules/.bin" ]; then
-  # Resolve to absolute path using cd and pwd
-  BIN_PATH="$(cd "./node_modules/.bin" 2>/dev/null && pwd -P)"
+# Find node_modules/.bin with the specified command by searching up the directory tree
+find_node_modules_bin_with_cmd() {
+  local cmd_name="$1"
+  local search_dir="$(pwd -P)"
 
-  # If we got an absolute path, use it; otherwise fall back to relative
-  if [ -n "$BIN_PATH" ]; then
-    export PATH="$BIN_PATH:$PATH"
-  else
-    # Fallback to relative path if absolute resolution fails
-    # (shouldn't happen if directory exists, but handle it just in case)
-    export PATH="./node_modules/.bin:$PATH"
-  fi
+  while [ "$search_dir" != "/" ]; do
+    if [ -d "$search_dir/node_modules/.bin" ]; then
+      local cmd_path="$search_dir/node_modules/.bin/$cmd_name"
+      # Check if command exists and is executable
+      if [ -f "$cmd_path" ] && [ -x "$cmd_path" ]; then
+        echo "$search_dir/node_modules/.bin"
+        return 0
+      fi
+    fi
+    search_dir="$(dirname "$search_dir")"
+  done
+
+  return 1
+}
+
+# Get the command name first
+CMD_NAME="$1"
+shift
+
+# Search for node_modules/.bin with the command up the directory tree
+BIN_PATH="$(find_node_modules_bin_with_cmd "$CMD_NAME")"
+if [ -n "$BIN_PATH" ]; then
+  export PATH="$BIN_PATH:$PATH"
 fi
 
 
 # Execute the remaining arguments as a command
 # On Windows, prefer .cmd files over bash scripts for extensionless commands
-CMD_NAME="$1"
-shift
 
 # Check if we're on Windows by checking OSTYPE (msys/cygwin/mingw) or WINDIR
 IS_WINDOWS=0

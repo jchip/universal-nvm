@@ -157,7 +157,8 @@ run_test "Verify npm is available" "npm --version"
 
 # Test 3: List installed versions
 # Note: nvm ls might fail if internal state isn't fully initialized, so we check nodejs directory instead
-run_test "List installed versions" "[ -d ~/.unvm/nodejs/v24.11.0 ]"
+# Dynamically check for the version that was installed (stored in $FIRST_VERSION)
+run_test "List installed versions" "[ -d ~/.unvm/nodejs/$FIRST_VERSION ]"
 
 # Test 4: Install specific version (20.18.0 - use full version to avoid remote fetch)
 run_test "Install Node.js v20.18.0" "nvm install v20.18.0 --no-ssl"

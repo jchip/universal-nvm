@@ -28,18 +28,49 @@ if ($args.Count -eq 0 -or $args[0] -eq "--help" -or $args[0] -eq "-h") {
     exit 0
 }
 
-# Check if ./node_modules/.bin exists (works on both Windows and Unix)
-$nodeBinPath = if ($IsUnix) { "./node_modules/.bin" } else { ".\node_modules\.bin" }
-if (Test-Path $nodeBinPath -PathType Container) {
-    # Get absolute path
-    $binPath = (Resolve-Path $nodeBinPath).Path
+# Find node_modules/.bin with the specified command by searching up the directory tree
+function Find-NodeModulesBinWithCmd {
+    param([string]$cmdName)
+
+    $searchDir = Get-Location
+
+    while ($searchDir) {
+        $nodeBinPath = Join-Path $searchDir "node_modules" ".bin"
+        if (Test-Path $nodeBinPath -PathType Container) {
+            # Check if the command exists in this node_modules/.bin
+            $cmdPath = Join-Path $nodeBinPath $cmdName
+
+            # On Windows, also check for .cmd extension
+            $cmdExists = (Test-Path $cmdPath -PathType Leaf) -or
+                         (Test-Path "$cmdPath.cmd" -PathType Leaf) -or
+                         (Test-Path "$cmdPath.ps1" -PathType Leaf)
+
+            if ($cmdExists) {
+                return (Resolve-Path $nodeBinPath).Path
+            }
+        }
+
+        # Move to parent directory
+        $parent = Split-Path $searchDir -Parent
+        if (-not $parent -or $parent -eq $searchDir) {
+            break
+        }
+        $searchDir = $parent
+    }
+
+    return $null
+}
+
+# Get the command name first
+$command = $args[0]
+$commandArgs = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { @() }
+
+# Search for node_modules/.bin with the command up the directory tree
+$binPath = Find-NodeModulesBinWithCmd $command
+if ($binPath) {
     # Add it to PATH for this session
     $env:PATH = "$binPath$pathSeparator$env:PATH"
 }
-
-# Execute the command with arguments
-$command = $args[0]
-$commandArgs = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { @() }
 
 # On Windows, try .cmd extension if command doesn't have an extension
 if (-not $IsUnix -and $command -notmatch '\.' ) {
