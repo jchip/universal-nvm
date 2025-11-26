@@ -1,7 +1,7 @@
 {
   "name": "universal-nvm",
   "description": "nvm: a universal node.js version manager for Windows (no admin) and Unix",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "author": "Tom.Huang <hzlhu.dargon@gmail.com>",
   "contributors": [
     "Joel Chen <joel123@gmail.com>"
