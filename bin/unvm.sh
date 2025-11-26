@@ -1,6 +1,6 @@
 function _unvm_init() {
   if [ -z "$NVM_HOME" ]; then
-    NVM_HOME=~/nvm
+    NVM_HOME=~/.unvm
   fi
 
   export NVM_RUN_ID=$$

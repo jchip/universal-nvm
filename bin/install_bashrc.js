@@ -6,8 +6,7 @@ const path = require("path");
 
 const homeDir = os.homedir();
 
-const nvmHome = process.env.NVM_HOME || `${homeDir}/nvm`;
-const nvmLink = process.env.NVM_LINK || `${nvmHome}/nodejs/bin`;
+const nvmHome = process.env.NVM_HOME || `${homeDir}/.unvm`;
 
 // Use HOME variable (works on Unix and Git Bash on Windows)
 const homeAlias = "${HOME}";
@@ -16,10 +15,8 @@ const homeAlias = "${HOME}";
 const normalizeHomePath = (p) => p.replace(/\\/g, "/");
 const normalizedHomeDir = normalizeHomePath(homeDir);
 const normalizedNvmHome = normalizeHomePath(nvmHome);
-const normalizedNvmLink = normalizeHomePath(nvmLink);
 
 const varNvmHome = normalizedNvmHome.replace(normalizedHomeDir, homeAlias);
-const varNvmLink = normalizedNvmLink.replace(normalizedHomeDir, homeAlias);
 
 const shellName = process.argv[3] || "bash";
 
@@ -36,7 +33,7 @@ const commands = [
   `  export PATH="\$\{NVM_HOME}/bin:\$PATH"`,
   `  UNVM_SH="\$\{NVM_HOME}/bin/unvm.sh"`,
   `  if [ -s "\$\{UNVM_SH}" ]; then`,
-  `    export NVM_LINK="${varNvmLink}"`,
+  `    export NVM_LINK="\$\{NVM_HOME}/nodejs/bin"`,
   mirrorEnv,
   `    source "\$\{UNVM_SH}"`,
   `    alias nvx="\$\{NVM_HOME}/bin/nvx"`,
