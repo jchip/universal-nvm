@@ -96,8 +96,8 @@ If for some reason you absolutely can't have PowerShell or permission to install
 1. Download the package zip file from https://github.com/jchip/universal-nvm/archive/v1.11.1/.zip
    1. Extract this file to your home directory. You will get a new directory `universal-nvm-1.11.1`.
    2. Rename it to `nvm`, for example: `C:\Users\<username>\nvm`
-2. Download the zipfile https://nodejs.org/dist/v20.12.1/node-v20.12.1-win-x64.zip
-   1. Extract this file to `C:\Users\<username>\nvm`. You will get a new directory `node-v20.12.1-win-x64`
+2. Download the zipfile https://nodejs.org/dist/v24.16.0/node-v24.16.0-win-x64.zip
+   1. Extract this file to `C:\Users\<username>\nvm`. You will get a new directory `node-v24.16.0-win-x64`
    2. Move `node.exe` from that directory into `C:\Users\<username>\nvm`
    3. (optional) You can delete the directory after if you want.
 3. Open `RegEdit.exe`, in `HKEY_CURRENT_USER/Environment`

@@ -17,7 +17,7 @@ function _unvm_init() {
   fi
 
   if [ -z "$TMPDIR" ]; then
-    TMPDIR="$($NVM_NODE -e "console.log(os.tmpdir())")"
+    TMPDIR="$($NVM_NODE -e "console.log(require('os').tmpdir())")"
   else
     export NVM_TMPDIR=$TMPDIR
   fi
