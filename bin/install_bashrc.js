@@ -55,21 +55,24 @@ function updateShellProfile(profileFile) {
   let secondPart = [];
 
   if (beginIx >= 0) {
-    firstPart = profile.slice(0, beginIx);
     const endIx = profile.indexOf(end);
     if (endIx < beginIx) {
-      secondPart = profile.slice(beginIx + 1);
+      // begin marker present but end marker missing/before begin: the block's
+      // extent is ambiguous. Abort rather than duplicate the old block or guess
+      // and delete user content; ask the user to clean it up.
       console.log(
         `WARNING:
-nvm install found begin marker but not end marker in your ${profileFile}
-please check these markers in the file and clean it up:
+nvm install found the begin marker but not the end marker in your ${profileFile}
+Skipping update to avoid corrupting the file. Please remove the stale nvm block
+(from the begin marker down to where it should end) and re-run install:
 ${begin}
 ${end}
 `
       );
-    } else {
-      secondPart = profile.slice(endIx + 1);
+      return;
     }
+    firstPart = profile.slice(0, beginIx);
+    secondPart = profile.slice(endIx + 1);
   }
 
   let updateProfile = firstPart.concat(commands, secondPart);

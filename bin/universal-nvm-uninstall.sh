@@ -89,6 +89,17 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     echo "  Deleting: $LAUNCH_AGENT"
     rm -f "$LAUNCH_AGENT"
   fi
+
+  # System-wide PATH entry from `nvx --install-to-system` (needs root)
+  if [ -f /etc/paths.d/999-uni-nvm ]; then
+    if sudo -n true 2>/dev/null; then
+      echo "Removing system PATH entry: /etc/paths.d/999-uni-nvm"
+      sudo rm -f /etc/paths.d/999-uni-nvm || true
+    else
+      echo "NOTE: a system-wide PATH entry remains (from 'nvx --install-to-system')."
+      echo "      Remove it with: sudo rm -f /etc/paths.d/999-uni-nvm"
+    fi
+  fi
   echo ""
 
 elif [ "$OS_TYPE" = "Linux" ]; then
@@ -99,6 +110,12 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     echo "Removing Linux environment configuration..."
     echo "  Deleting: $ENV_FILE"
     rm -f "$ENV_FILE"
+  fi
+
+  # System-wide PATH entry from `nvx --install-to-system` in /etc/environment (needs root)
+  if grep -qF "${NVM_HOME}" /etc/environment 2>/dev/null; then
+    echo "NOTE: /etc/environment contains an nvm PATH entry (from 'nvx --install-to-system')."
+    echo "      Edit it with sudo and remove '${NVM_HOME}' from the PATH= line."
   fi
   echo ""
 fi

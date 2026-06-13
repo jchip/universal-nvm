@@ -70,7 +70,8 @@
   ],
   "files": [
     "bin",
-    "dist",
+    "dist/unvm.js",
+    "dist/unvm.js.LICENSE.txt",
     "install.sh",
     "install.ps1",
     "check-registry.js"

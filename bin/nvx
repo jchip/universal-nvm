@@ -235,30 +235,33 @@ if [ "$1" = "--install-to-system" ]; then
       NEW_PATH_LINE="PATH=\"$NVM_BIN_PATH:$CURRENT_PATH\""
     fi
 
-    # Create a temporary file with the updated content
-    TMP_FILE=$(mktemp 2>/dev/null) || TMP_FILE="/tmp/uni-nvm-env.$$"
+    # Need write access to do the atomic replace; otherwise tell the user to sudo
+    if [ ! -w "$(dirname "$ENV_FILE")" ] || [ ! -w "$ENV_FILE" ]; then
+      echo "Error: Permission denied writing to $ENV_FILE" >&2
+      echo "" >&2
+      echo "Please run this command with sudo:" >&2
+      echo "  sudo \"$SCRIPT_PATH\" --install-to-system" >&2
+      exit 1
+    fi
+
+    # Build the new content in a temp file in the SAME directory, preserve the
+    # original mode, then atomically rename over it. This avoids a truncated or
+    # half-written /etc/environment if the process is interrupted mid-write.
+    TMP_FILE=$(mktemp "${ENV_FILE}.unvm.XXXXXX" 2>/dev/null) || TMP_FILE="${ENV_FILE}.unvm.$$"
 
     if grep -v -E '^PATH=' "$ENV_FILE" > "$TMP_FILE" 2>/dev/null && echo "$NEW_PATH_LINE" >> "$TMP_FILE" 2>/dev/null; then
-      # Try to write back to /etc/environment
-      if cat "$TMP_FILE" > "$ENV_FILE" 2>/dev/null; then
-        rm -f "$TMP_FILE"
+      chmod --reference="$ENV_FILE" "$TMP_FILE" 2>/dev/null || chmod 644 "$TMP_FILE" 2>/dev/null
+      if mv -f "$TMP_FILE" "$ENV_FILE" 2>/dev/null; then
         echo "Successfully installed to system PATH"
         echo "Added $NVM_BIN_PATH to $ENV_FILE"
         echo "You may need to log out and log back in for changes to take effect"
         exit 0
-      else
-        rm -f "$TMP_FILE"
-        echo "Error: Permission denied writing to $ENV_FILE" >&2
-        echo "" >&2
-        echo "Please run this command with sudo:" >&2
-        echo "  sudo \"$SCRIPT_PATH\" --install-to-system" >&2
-        exit 1
       fi
-    else
-      rm -f "$TMP_FILE" 2>/dev/null
-      echo "Error: Failed to update $ENV_FILE" >&2
-      exit 1
     fi
+
+    rm -f "$TMP_FILE" 2>/dev/null
+    echo "Error: Failed to update $ENV_FILE" >&2
+    exit 1
 
   else
     echo "Error: --install-to-system is only supported on macOS and Linux" >&2
