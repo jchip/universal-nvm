@@ -194,7 +194,9 @@ function installNvm() {
 
 fetchNodeJS "${DEFAULT_NODE_VERSION}"
 
-if [ -f "test.sh" ]; then
+# Only honor a local test.sh in explicit test mode (NVM_TEST); otherwise a stray
+# ./test.sh in the user's CWD could hijack a normal `curl | bash` install.
+if [ -n "$NVM_TEST" ] && [ -f "test.sh" ]; then
   source test.sh
 else
   installNvm

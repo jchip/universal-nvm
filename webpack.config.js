@@ -45,7 +45,7 @@ const nodeConfig = Object.assign({}, base, {
     rules: [
       {
         test: /\.js$/,
-        exclude: x => x.indexOf("node_modules") > 0,
+        exclude: /node_modules/,
         use: {
           loader: "babel-loader",
           options: {

@@ -1,0 +1,85 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { promises as fs } from 'fs';
+import path from 'path';
+import os from 'os';
+
+const common = require('../../lib/common');
+
+// symlink creation needs privilege on Windows; the non-symlink cases still run there
+const onPosix = process.platform === 'win32' ? it.skip : it;
+
+// Regression: findLinkVersion used `.match(...)[0]` with no guard, so `nvm ls`
+// and `nvm uninstall` crashed when NVM_LINK pointed at a real dir (readlink
+// EINVAL) or a target with no version segment (null.match). It must not throw.
+describe('common.findLinkVersion (crash-safety)', () => {
+  let tmpDir;
+  let originalEnv;
+
+  beforeEach(async () => {
+    originalEnv = { ...process.env };
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nvm-link-test-'));
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+  });
+
+  onPosix('reads the version from a symlink target', async () => {
+    const target = path.join(tmpDir, 'nodejs', 'v20.10.0', 'bin');
+    await fs.mkdir(target, { recursive: true });
+    const link = path.join(tmpDir, 'link');
+    await fs.symlink(target, link);
+    process.env.NVM_LINK = link;
+
+    expect(await common.findLinkVersion()).toBe('v20.10.0');
+  });
+
+  it('returns undefined (no throw) when the link path is a real directory', async () => {
+    const real = path.join(tmpDir, 'realdir');
+    await fs.mkdir(real, { recursive: true });
+    process.env.NVM_LINK = real;
+
+    expect(await common.findLinkVersion()).toBeUndefined();
+  });
+
+  onPosix('returns undefined when the symlink target has no version segment', async () => {
+    const target = path.join(tmpDir, 'plain-dir');
+    await fs.mkdir(target, { recursive: true });
+    const link = path.join(tmpDir, 'link2');
+    await fs.symlink(target, link);
+    process.env.NVM_LINK = link;
+
+    expect(await common.findLinkVersion()).toBeUndefined();
+  });
+
+  it('returns undefined when nothing is linked', async () => {
+    process.env.NVM_LINK = path.join(tmpDir, 'nope');
+    expect(await common.findLinkVersion()).toBeUndefined();
+  });
+});
+
+// Regression: the sourced temp env file was created with the default umask
+// (world-readable) in a shared, predictable tmp path. It must be owner-only.
+describe('common.createEnvironmentTmp file permissions (posix)', () => {
+  let tmpDir;
+  let originalEnv;
+
+  beforeEach(async () => {
+    originalEnv = { ...process.env };
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nvm-envfile-test-'));
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+  });
+
+  onPosix('writes the temp env file readable/writable only by the owner (0o600)', async () => {
+    const file = path.join(tmpDir, 'env.sh');
+    await common.createEnvironmentTmp(file, 'export X=1\n');
+
+    const mode = (await fs.stat(file)).mode & 0o777;
+    expect(mode).toBe(0o600);
+  });
+});

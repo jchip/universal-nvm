@@ -22,7 +22,7 @@ function check() {
   const { client, port } = getReq(url);
 
   const options = {
-    hostname: url.host,
+    hostname: url.hostname,
     port,
     path: "/optional-require",
     method: "GET"
