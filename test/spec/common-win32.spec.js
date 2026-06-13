@@ -1,15 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-const mockOpfs = {
-  rename: vi.fn(),
-  writeFile: vi.fn()
-};
-
 const mockXaa = {
   delay: vi.fn()
 };
 
-vi.mock('opfs', () => mockOpfs);
 vi.mock('xaa', () => mockXaa);
 
 const os = require('os');
@@ -32,8 +26,6 @@ describe('common-win32 utility functions', () => {
     commonWin32.getEnvFile = vi.fn((ext) => `nvm_env${ext}`);
 
     // Reset mocks
-    mockOpfs.rename.mockClear();
-    mockOpfs.writeFile.mockClear();
     mockXaa.delay.mockClear();
   });
 

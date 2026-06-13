@@ -2,8 +2,6 @@
 
 const Fs = require("fs");
 const Path = require("path");
-const mkdirp = require("mkdirp");
-const rimraf = require("rimraf");
 const xclap = require("@xarc/run");
 
 const pkgFile = Path.resolve("package.json");
@@ -47,7 +45,7 @@ xclap.load("nvm", {
       delete pkg.nyc;
       delete pkg.devDependencies;
 
-      mkdirp.sync(Path.resolve(".tmp"));
+      Fs.mkdirSync(Path.resolve(".tmp"), { recursive: true });
       Fs.writeFileSync(Path.resolve(".tmp/package.json"), data);
       Fs.writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`);
     }
@@ -69,8 +67,8 @@ xclap.load("nvm", {
 
   ".clean-dist"() {
     const dist = Path.resolve("dist");
-    rimraf.sync(dist);
-    mkdirp.sync(dist);
+    Fs.rmSync(dist, { recursive: true, force: true });
+    Fs.mkdirSync(dist, { recursive: true });
   },
 
   bundle: "webpack",

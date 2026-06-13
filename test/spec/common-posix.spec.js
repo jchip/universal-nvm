@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock the dependencies before requiring the module
-const mockOpfs = {};
 const mockLog = vi.fn();
-
-vi.mock('opfs', () => mockOpfs);
 
 // We need to test the posix module directly, but common.js includes platform detection
 // So we'll require it directly

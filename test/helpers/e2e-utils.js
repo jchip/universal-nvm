@@ -6,7 +6,6 @@ const { spawn } = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const rimraf = require('rimraf');
 
 const isWindows = process.platform === 'win32';
 
@@ -57,12 +56,7 @@ class E2ETestEnv {
    */
   async cleanup() {
     if (fs.existsSync(this.nvmHome)) {
-      await new Promise((resolve, reject) => {
-        rimraf(this.nvmHome, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
+      await fs.promises.rm(this.nvmHome, { recursive: true, force: true });
       console.log(`E2E test env cleaned up: ${this.nvmHome}`);
     }
   }

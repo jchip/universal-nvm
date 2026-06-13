@@ -77,7 +77,7 @@ function getLtsVersionByTabFile() {
   if [ -n "$fv" ]; then
     echo "$fv"
   else
-    echo "v20.12.0"
+    echo "v24.16.0"
   fi
 }
 

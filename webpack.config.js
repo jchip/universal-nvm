@@ -25,8 +25,7 @@ const base = {
       "./iconv-loader": Path.resolve("stubs/iconv-loader.js"),
       debug: Path.resolve("stubs/debug.js"),
       lodash: require.resolve("lodash/lodash.min.js"),
-      "resolve-from": Path.resolve("stubs/resolve-from.js"),
-      bluebird: Path.resolve("stubs/bluebird")
+      "resolve-from": Path.resolve("stubs/resolve-from.js")
     }
   },
   output: {
@@ -41,7 +40,7 @@ const base = {
   }
 };
 
-const node10 = Object.assign({}, base, {
+const nodeConfig = Object.assign({}, base, {
   module: {
     rules: [
       {
@@ -50,7 +49,7 @@ const node10 = Object.assign({}, base, {
         use: {
           loader: "babel-loader",
           options: {
-            presets: [["@babel/env", { targets: { node: "10.16.0" } }]]
+            presets: [["@babel/env", { targets: { node: "24" } }]]
           }
         }
       }
@@ -58,4 +57,4 @@ const node10 = Object.assign({}, base, {
   }
 });
 
-module.exports = node10;
+module.exports = nodeConfig;

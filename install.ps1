@@ -45,7 +45,7 @@ function Find-Folders {
 
 function getLtsVersion() {
     $nodejsVersionsUrl = "https://nodejs.org/dist/index.json"
-    $foundVersion = "v20.12.0"
+    $foundVersion = "v24.16.0"
 
     Try {
         $lts = Invoke-WebRequest "$nodejsVersionsUrl" | ConvertFrom-Json
