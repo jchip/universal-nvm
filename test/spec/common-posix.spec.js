@@ -189,17 +189,18 @@ describe('common-posix utility functions', () => {
 
       const result = commonPosix.getSetInstallEnvScript('v18.20.0');
 
-      expect(result).toContain('export PATH=');
-      expect(result).toContain('export NVM_INSTALL=v18.20.0');
+      expect(result).toContain("export PATH='/usr/bin:/bin'");
+      expect(result).toContain("export NVM_INSTALL='v18.20.0'");
     });
 
-    it('should escape quotes in PATH', () => {
+    it('should single-quote PATH so metacharacters cannot execute', () => {
       process.env.PATH = '/path/with"quotes:/usr/bin';
 
       const result = commonPosix.getSetInstallEnvScript('v20.10.0');
 
-      expect(result).toContain('\\"');
-      expect(result).toContain('export NVM_INSTALL=v20.10.0');
+      // value is wrapped in single quotes (POSIX-safe), not backslash-escaped
+      expect(result).toContain(`export PATH='/path/with"quotes:/usr/bin'`);
+      expect(result).toContain("export NVM_INSTALL='v20.10.0'");
     });
   });
 

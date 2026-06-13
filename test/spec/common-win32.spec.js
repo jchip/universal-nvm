@@ -157,8 +157,8 @@ describe('common-win32 utility functions', () => {
 
       const result = commonWin32.getSetInstallEnvScript('v18.20.0');
 
-      expect(result).toContain('$Env:NVM_INSTALL="v18.20.0"');
-      expect(result).toContain('$Env:Path="C:\\Windows\\System32"');
+      expect(result).toContain("$Env:NVM_INSTALL='v18.20.0'");
+      expect(result).toContain("$Env:Path='C:\\Windows\\System32'");
       expect(result).toContain('\r');
     });
 
@@ -183,8 +183,8 @@ describe('common-win32 utility functions', () => {
 
       const result = commonWin32.getDefaultEnvScript();
 
-      expect(result).toContain('$Env:NVM_USE="v18.20.0"');
-      expect(result).toContain('$Env:Path="C:\\nvm\\nodejs\\bin"');
+      expect(result).toContain("$Env:NVM_USE='v18.20.0'");
+      expect(result).toContain("$Env:Path='C:\\nvm\\nodejs\\bin'");
     });
 
     it('should generate CMD script with NVM_USE', () => {
