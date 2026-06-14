@@ -65,19 +65,23 @@ if [ "$1" = "--install-to-user" ]; then
       exit 1
     fi
 
-    # Update shell profiles using install_bashrc.js
+    # Update shell profiles using install_bashrc.js. The helper exits non-zero
+    # and prints a warning to stderr when it skips a profile with a corrupt nvm
+    # block; track that so we don't report a false success below. stdout is
+    # suppressed (nothing useful on success); stderr is left visible.
     INSTALL_SCRIPT="$DETECTED_NVM_HOME/bin/install_bashrc.js"
+    PROFILE_SKIPPED=0
     if [ -f "$INSTALL_SCRIPT" ]; then
       # Update .bashrc or .bash_profile
       if [ -f "$HOME/.bashrc" ]; then
-        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.bashrc" bash >/dev/null 2>&1
+        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.bashrc" bash >/dev/null || PROFILE_SKIPPED=1
       elif [ -f "$HOME/.bash_profile" ]; then
-        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.bash_profile" bash >/dev/null 2>&1
+        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.bash_profile" bash >/dev/null || PROFILE_SKIPPED=1
       fi
 
       # Update .zshrc
       if [ -f "$HOME/.zshrc" ]; then
-        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.zshrc" zsh >/dev/null 2>&1
+        "$NODE_EXE" "$INSTALL_SCRIPT" "$HOME/.zshrc" zsh >/dev/null || PROFILE_SKIPPED=1
       fi
     fi
 
@@ -124,7 +128,12 @@ PLIST_EOF
     echo "Successfully configured user PATH"
     echo "Added $NVM_BIN_PATH to:"
     echo "  - Current session (immediate effect)"
-    echo "  - Shell profiles (terminal sessions)"
+    if [ "$PROFILE_SKIPPED" = "1" ]; then
+      echo "  - Shell profiles: SKIPPED - a profile has a stale nvm block (see warning above);"
+      echo "      fix it and re-run 'nvx --install-to-user' to update terminal sessions"
+    else
+      echo "  - Shell profiles (terminal sessions)"
+    fi
     echo "  - LaunchAgent at $PLIST_FILE (GUI apps after login)"
     echo ""
     echo "The PATH is now active for new terminal windows and current GUI apps."

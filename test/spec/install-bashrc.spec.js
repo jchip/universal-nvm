@@ -77,4 +77,17 @@ describe('install_bashrc updateShellProfile', () => {
     expect(out).toContain('# user middle');
     expect(out).toContain('# user bottom');
   });
+
+  it('returns true when the profile is updated and false when it skips a corrupt block', () => {
+    const ok = path.join(tmpDir, '.bashrc');
+    fs.writeFileSync(ok, '# user\nexport FOO=1\n');
+    expect(updateShellProfile(ok)).toBe(true);
+
+    const corrupt = path.join(tmpDir, '.bad');
+    const body = `${BEGIN}\nstale line\nexport KEEP=1\n`;
+    fs.writeFileSync(corrupt, body);
+    expect(updateShellProfile(corrupt)).toBe(false);
+    // the skip signal must not come at the cost of modifying the file
+    expect(fs.readFileSync(corrupt, 'utf8')).toBe(body);
+  });
 });

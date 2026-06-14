@@ -67,7 +67,7 @@ function updateShellProfile(profileFile) {
       // begin marker with no following end: the block's extent is ambiguous.
       // Abort rather than duplicate the old block or guess and delete user
       // content; ask the user to clean it up.
-      console.log(
+      console.error(
         `WARNING:
 nvm install found the begin marker but not the end marker in your ${profileFile}
 Skipping update to avoid corrupting the file. Please remove the stale nvm block
@@ -76,7 +76,7 @@ ${begin}
 ${end}
 `
       );
-      return;
+      return false;
     }
 
     if (insertAt < 0) {
@@ -97,6 +97,7 @@ ${end}
   }
 
   fs.writeFileSync(profileFile, updateProfile.concat("").join("\n"));
+  return true;
 }
 
 // Export for reuse
@@ -107,5 +108,7 @@ if (typeof module !== "undefined" && module.exports) {
 // Run as script if called directly
 if (require.main === module) {
   const profileFile = process.argv[2] || path.join(homeDir, ".bash_profile");
-  updateShellProfile(profileFile);
+  // Exit non-zero when the update is skipped so callers (e.g. `nvx
+  // --install-to-user`) can detect it and not report a false success.
+  process.exit(updateShellProfile(profileFile) ? 0 : 1);
 }
