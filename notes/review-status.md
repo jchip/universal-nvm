@@ -47,9 +47,10 @@ Prioritized; none are critical. Original review IDs in brackets.
 1. **[M#11 · Windows] No backup before overwriting the registry.** `install.ps1` rewrites `HKCU:\Environment`
    `Path`/`NVM_HOME` in place — atomic temp+rename doesn't apply to registry values, so stash the prior `Path`
    to a backup value/file before overwriting. _(POSIX profile half is fixed — see "Fixed & verified".)_
-2. **[L#17b] `nvx` falls through to ambient PATH on empty `BIN_PATH`.** Unlike npx's local-only contract, a
-   typo can run an unrelated global. Warn/error instead. Also: uninstaller detects but doesn't auto-remove the
-   `/etc/environment` line (prompts manual edit).
+2. **[L#17] Uninstaller leaves the `/etc/environment` PATH line.** The Linux uninstaller removes
+   `/etc/paths.d/999-uni-nvm` but only *detects* the `nvm` `PATH=` line in `/etc/environment` — it prompts for a
+   manual edit rather than removing it. May be intentional caution around system files; revisit if we want full
+   cleanup. (Agent-reported, unverified.)
 3. **[L#14] `bin/no-npm-install.js` only prints, never `exit(1)`.** So `npm install universal-nvm` isn't
    actually blocked. Either `process.exit(1)` or stop calling it a "guard" and document as advisory.
 4. **[L#18] `uninstall.js` failure-path message says "Removed … failed".** Success wording in a catch block — fix the message.
@@ -74,6 +75,15 @@ Prioritized; none are critical. Original review IDs in brackets.
   - *A patch wouldn't be correct.* A `%RANDOM%`-based name only narrows the window, never closes it; the only
     robust fix is re-architecting how cmd hands env back — not worth a redesign for a manual-race-only payoff.
   - (The arg-truncation half of H#3 was already fixed in `b9248c5`.)
+
+## Rejected — not a defect
+
+- **[L#17b] `nvx` falls through to ambient `PATH` when a command isn't in a local `node_modules/.bin`.**
+  By design, and it matches `npx`: npx also resolves local `.bin` → `$PATH`. The trait that defines npx — and
+  that nvx deliberately drops — is auto-**fetching** a package from the npm registry to run it. nvx never
+  fetches ("npx without the registry download"), so the PATH fallthrough is expected, not a contract violation —
+  no warn/error guard wanted. (Was an unverified agent-reported finding; the "node_modules only" line in the
+  contract means "no fetching," not "must live in node_modules.")
 
 ## 🧪 Test gaps (largely open)
 
