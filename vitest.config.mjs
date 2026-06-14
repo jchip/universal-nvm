@@ -13,11 +13,14 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/**',
-        'dist/**',
-        'test/**',
-        '**/*.config.js',
-        'webpack.config.js',
-        'xclap.js'
+        'dist/**',          // webpack bundle, not source
+        'test/**',          // the tests themselves
+        'stubs/**',         // webpack module shims
+        '.temp/**',         // scratch/debug files
+        '**/*.config.*',    // webpack.config.js, vitest.config.mjs
+        'xclap.js',         // xrun task definitions
+        'pack.js',          // packaging script
+        'check-registry.js' // standalone registry diagnostic
       ]
     },
     // Separate test timeouts for different test types
