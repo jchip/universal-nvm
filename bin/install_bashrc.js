@@ -47,19 +47,26 @@ const commands = [
 ].filter(x => x);
 
 function updateShellProfile(profileFile) {
-  let profile = fs.existsSync(profileFile) ? fs.readFileSync(profileFile, "utf8").split("\n") : [];
+  const profile = fs.existsSync(profileFile) ? fs.readFileSync(profileFile, "utf8").split("\n") : [];
 
-  const beginIx = profile.indexOf(begin);
+  // Strip every existing nvm block (begin..end inclusive). A profile may hold
+  // more than one - left by an older version or hand-editing - and removing only
+  // the first (the previous single-indexOf behavior) silently duplicated the rest.
+  const kept = [];
+  let insertAt = -1; // re-insert the fresh block where the first old block began
 
-  let firstPart = profile;
-  let secondPart = [];
+  for (let i = 0; i < profile.length; i++) {
+    if (profile[i] !== begin) {
+      kept.push(profile[i]);
+      continue;
+    }
 
-  if (beginIx >= 0) {
-    const endIx = profile.indexOf(end);
-    if (endIx < beginIx) {
-      // begin marker present but end marker missing/before begin: the block's
-      // extent is ambiguous. Abort rather than duplicate the old block or guess
-      // and delete user content; ask the user to clean it up.
+    // Found a begin marker; locate its matching end at or after it.
+    const endIx = profile.indexOf(end, i + 1);
+    if (endIx < 0) {
+      // begin marker with no following end: the block's extent is ambiguous.
+      // Abort rather than duplicate the old block or guess and delete user
+      // content; ask the user to clean it up.
       console.log(
         `WARNING:
 nvm install found the begin marker but not the end marker in your ${profileFile}
@@ -71,14 +78,21 @@ ${end}
       );
       return;
     }
-    firstPart = profile.slice(0, beginIx);
-    secondPart = profile.slice(endIx + 1);
+
+    if (insertAt < 0) {
+      insertAt = kept.length;
+    }
+    i = endIx; // skip the block; the loop's i++ steps past the end marker
   }
 
-  let updateProfile = firstPart.concat(commands, secondPart);
+  if (insertAt < 0) {
+    insertAt = kept.length; // no existing block: append at the end
+  }
+
+  let updateProfile = kept.slice(0, insertAt).concat(commands, kept.slice(insertAt));
   // remove last line if it's empty
   const lastIx = updateProfile.length - 1;
-  if (updateProfile[lastIx].trim().length === 0) {
+  if (lastIx >= 0 && updateProfile[lastIx].trim().length === 0) {
     updateProfile = updateProfile.slice(0, lastIx);
   }
 
