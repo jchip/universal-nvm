@@ -83,3 +83,59 @@ describe('common.createEnvironmentTmp file permissions (posix)', () => {
     expect(mode).toBe(0o600);
   });
 });
+
+// Regression: switch-deactivate (`nvm unlink`) guarded the unlink with
+// common._exists (fs.access), which follows symlinks and so reports a *dangling*
+// default-version symlink as missing -- leaving the broken link behind. It must
+// detect the link itself (lstat) and remove it.
+describe('switch-deactivate removes a dangling default-version symlink', () => {
+  const switchDeactivate = require('../../lib/switch-deactivate');
+  let tmpDir;
+  let originalEnv;
+  let originalExit;
+
+  beforeEach(async () => {
+    originalEnv = { ...process.env };
+    originalExit = common.exit;
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nvm-unlink-test-'));
+    // contain createEnvironmentTmp's side-effect file inside tmpDir
+    process.env.NVM_TMPDIR = tmpDir;
+    delete process.env.NVM_USE; // take the resetNvmPaths + createEnvironmentTmp branch
+    // a failure would call common.exit -> process.exit and kill the runner
+    common.exit = () => {
+      throw new Error('switch-deactivate called common.exit');
+    };
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    common.exit = originalExit;
+    await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+  });
+
+  onPosix('unlinks a dangling symlink that _exists/access would skip', async () => {
+    const link = path.join(tmpDir, 'nodejs-bin');
+    await fs.symlink(path.join(tmpDir, 'gone'), link); // target does not exist
+    process.env.NVM_LINK = link;
+
+    // document the bug being fixed: access() follows the link and says "missing"
+    expect(await common._exists(link)).toBe(false);
+    expect((await fs.lstat(link)).isSymbolicLink()).toBe(true);
+
+    await switchDeactivate();
+
+    await expect(fs.lstat(link)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  onPosix('still unlinks a valid symlink', async () => {
+    const target = path.join(tmpDir, 'real-bin');
+    await fs.mkdir(target, { recursive: true });
+    const link = path.join(tmpDir, 'nodejs-bin');
+    await fs.symlink(target, link);
+    process.env.NVM_LINK = link;
+
+    await switchDeactivate();
+
+    await expect(fs.lstat(link)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+});
