@@ -84,6 +84,50 @@ describe('common.createEnvironmentTmp file permissions (posix)', () => {
   });
 });
 
+// Regression (review finding #1): createEnvironmentTmp wrote the env script in
+// place at a shared, predictable tmp path. A reader could source a half-written
+// file, and writeFile would follow a pre-planted symlink at the target. It must
+// stage a private temp file and atomically rename(2) it into place.
+describe('common.createEnvironmentTmp atomic write (posix)', () => {
+  let tmpDir;
+  let originalEnv;
+
+  beforeEach(async () => {
+    originalEnv = { ...process.env };
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nvm-envatomic-test-'));
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+  });
+
+  onPosix('replaces a pre-planted symlink at the target instead of writing through it', async () => {
+    const victim = path.join(tmpDir, 'victim');
+    await fs.writeFile(victim, 'untouched\n');
+    const file = path.join(tmpDir, 'env.sh');
+    await fs.symlink(victim, file);
+
+    await common.createEnvironmentTmp(file, 'export X=1\n');
+
+    // the file the symlink pointed at must be left intact...
+    expect(await fs.readFile(victim, 'utf8')).toBe('untouched\n');
+    // ...and the target is now a real, owner-only file holding our content.
+    const st = await fs.lstat(file);
+    expect(st.isSymbolicLink()).toBe(false);
+    expect(st.mode & 0o777).toBe(0o600);
+    expect(await fs.readFile(file, 'utf8')).toBe('export X=1\n');
+  });
+
+  onPosix('leaves no temp file behind on success', async () => {
+    const file = path.join(tmpDir, 'env.sh');
+    await common.createEnvironmentTmp(file, 'export X=1\n');
+
+    const leftovers = (await fs.readdir(tmpDir)).filter((n) => n.endsWith('.tmp'));
+    expect(leftovers).toEqual([]);
+  });
+});
+
 // Regression: switch-deactivate (`nvm unlink`) guarded the unlink with
 // common._exists (fs.access), which follows symlinks and so reports a *dangling*
 // default-version symlink as missing -- leaving the broken link behind. It must
