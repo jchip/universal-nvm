@@ -61,10 +61,19 @@ Prioritized; none are critical. Original review IDs in brackets.
 
 ## 🚫 Decided not to fix
 
-- **[H#3] `bin/unvm.cmd` concurrent-run temp-file race** — constant `NVM_RUN_ID=1` → `nvm_env1.cmd` collides
-  across simultaneous cmd shells. **Won't fix (2026-06-14):** requires two concurrent `nvm` invocations in
-  separate cmd windows; worst case is a wrong Node version / transient error in one shell, not a security issue.
-  Too rare to justify the change. (The arg-truncation half of H#3 was already fixed in `b9248c5`.)
+- **[H#3] `bin/unvm.cmd` fixed-temp-file race** — `unvm.cmd:6` hardcodes `NVM_RUN_ID=1`, so every cmd run
+  writes the same `%TMP%\nvm_env1.cmd` (the name is also hardcoded literally at `:20`/`:23`). Two `nvm` commands
+  run in two cmd windows at the same instant clobber each other's env file → one shell can get the wrong Node
+  version / a transient error. **Won't fix (2026-06-14).** Rationale:
+  - *Not concurrent code* — `unvm` is run-once-and-exit; nothing in the tool spawns parallel runs. It takes a
+    human firing two invocations in the same sub-second window.
+  - *cmd is the structural weak link, not a careless bug.* `unvm.sh` keys the temp file on `$$` and `unvm.ps1`
+    on `$PID`; cmd.exe has **no PID equivalent** — only `%RANDOM%` (0–32767, time-seeded, so two shells in the
+    same tick can still collide). And the write-file-then-`call` handshake itself is *forced* because cmd has no
+    parent-scope `source` like bash/PowerShell, so env must round-trip through a shared `%TMP%` file.
+  - *A patch wouldn't be correct.* A `%RANDOM%`-based name only narrows the window, never closes it; the only
+    robust fix is re-architecting how cmd hands env back — not worth a redesign for a manual-race-only payoff.
+  - (The arg-truncation half of H#3 was already fixed in `b9248c5`.)
 
 ## 🧪 Test gaps (largely open)
 
