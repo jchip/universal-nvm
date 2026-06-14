@@ -46,6 +46,39 @@ const commands = [
   end
 ].filter(x => x);
 
+// Atomically replace a file's contents: write a sibling temp file, then
+// rename(2) it over the target. rename is atomic on POSIX, so an interrupted or
+// failed write can never leave the user's profile half-written -- the original
+// stays intact until the swap. Resolve a symlinked profile first (dotfile
+// managers symlink .bashrc/.zshrc to a managed source) so the link is preserved
+// and we write through to its real target, and carry over the existing file's
+// permission bits -- both matching the previous in-place fs.writeFileSync.
+function writeFileAtomicSync(file, data) {
+  let target = file;
+  let mode; // undefined => let umask pick the default for a brand-new file
+  if (fs.existsSync(file)) {
+    target = fs.realpathSync(file);
+    mode = fs.statSync(target).mode & 0o777;
+  }
+
+  const unique = `${process.pid}.${Math.random().toString(36).slice(2)}`;
+  const tmpPath = `${target}.${unique}.tmp`;
+  try {
+    fs.writeFileSync(tmpPath, data, { flag: "wx" });
+    if (mode !== undefined) {
+      fs.chmodSync(tmpPath, mode);
+    }
+    fs.renameSync(tmpPath, target);
+  } catch (err) {
+    try {
+      fs.unlinkSync(tmpPath);
+    } catch (cleanupErr) {
+      // temp file may not have been created; nothing to clean up
+    }
+    throw err;
+  }
+}
+
 function updateShellProfile(profileFile) {
   const profile = fs.existsSync(profileFile) ? fs.readFileSync(profileFile, "utf8").split("\n") : [];
 
@@ -96,7 +129,7 @@ ${end}
     updateProfile = updateProfile.slice(0, lastIx);
   }
 
-  fs.writeFileSync(profileFile, updateProfile.concat("").join("\n"));
+  writeFileAtomicSync(profileFile, updateProfile.concat("").join("\n"));
   return true;
 }
 

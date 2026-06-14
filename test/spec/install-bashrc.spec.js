@@ -90,4 +90,58 @@ describe('install_bashrc updateShellProfile', () => {
     // the skip signal must not come at the cost of modifying the file
     expect(fs.readFileSync(corrupt, 'utf8')).toBe(body);
   });
+
+  it('creates the profile when it does not exist yet', () => {
+    const f = path.join(tmpDir, '.zshrc-new');
+    expect(fs.existsSync(f)).toBe(false);
+
+    expect(updateShellProfile(f)).toBe(true);
+
+    const out = fs.readFileSync(f, 'utf8');
+    expect(countBegins(out)).toBe(1);
+    expect(countEnds(out)).toBe(1);
+  });
+
+  it('writes through a symlinked profile, preserving the link (dotfile managers)', () => {
+    // e.g. stow/chezmoi symlink .bashrc to a file in a managed dir. The atomic
+    // write must update the real target and keep the symlink, not replace it
+    // with a regular file (which would sever the dotfile manager's link).
+    const real = path.join(tmpDir, 'managed-bashrc');
+    const link = path.join(tmpDir, '.bashrc');
+    fs.writeFileSync(real, '# user content\nexport FOO=1\n');
+    fs.symlinkSync(real, link);
+
+    updateShellProfile(link);
+
+    expect(fs.lstatSync(link).isSymbolicLink()).toBe(true);
+    expect(fs.readlinkSync(link)).toBe(real);
+    const out = fs.readFileSync(real, 'utf8');
+    expect(out).toContain('export FOO=1');
+    expect(countBegins(out)).toBe(1);
+    expect(countEnds(out)).toBe(1);
+  });
+
+  it('preserves the existing profile permission bits', () => {
+    const f = path.join(tmpDir, '.bashrc');
+    fs.writeFileSync(f, '# user\nexport FOO=1\n');
+    fs.chmodSync(f, 0o600);
+
+    updateShellProfile(f);
+
+    expect(fs.statSync(f).mode & 0o777).toBe(0o600);
+    expect(fs.readFileSync(f, 'utf8')).toContain('export FOO=1');
+  });
+
+  it('leaves no temp file behind after updating', () => {
+    const f = path.join(tmpDir, '.bashrc');
+    fs.writeFileSync(f, '# user\nexport FOO=1\n');
+
+    updateShellProfile(f);
+
+    // realpathSync may resolve tmpDir through a symlink (e.g. /var -> /private
+    // on macOS), so check the resolved dir the temp would have been written in.
+    const realDir = fs.realpathSync(tmpDir);
+    const leftovers = fs.readdirSync(realDir).filter(n => n.endsWith('.tmp'));
+    expect(leftovers).toEqual([]);
+  });
 });
