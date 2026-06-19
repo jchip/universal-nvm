@@ -73,8 +73,7 @@
     "dist/unvm.js",
     "dist/unvm.js.LICENSE.txt",
     "install.sh",
-    "install.ps1",
-    "check-registry.js"
+    "install.ps1"
   ],
   "repository": {
     "type": "git",

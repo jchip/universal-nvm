@@ -36,6 +36,7 @@ Most of the rest has also landed. This file tracks what's done vs. what remains.
 - **M#10 — install_bashrc malformed-marker duplicated block.** Strips existing blocks first; re-run idempotent; returns false on corrupt marker.
 - **M#11 (POSIX) — profile rewrite wasn't atomic.** `bin/install_bashrc.js` now writes via sibling temp + `rename(2)` (`writeFileAtomicSync`): a crash mid-write can't truncate the user's profile. Preserves symlinked profiles (realpath write-through, for stow/chezmoi) and existing permission bits. Tests in `install-bashrc.spec.js`. _Windows registry half still open — see backlog #1._
 - **M#12 — `escapePath` didn't escape `$`/backtick.** Replaced by `shQuote()` single-quoting.
+- **L#13 — dead `check-registry.js` shipped in the tarball.** Moved to `tools/` and dropped from published `files`; coverage exclude now `tools/**`. (The flagged host/hostname bug was already moot — uses `url.hostname`.)
 - **L#15 — webpack babel `exclude`.** Now `/node_modules/`.
 - **L#16 — dist `.map` shipped to consumers.** `package.json` `files` now lists `dist/unvm.js` explicitly; `.map` not shipped.
 - **L#17 (partial) — nvx Linux `--install-to-system`.** `/etc/environment` now written atomically (tmp + `mv`); uninstaller removes `/etc/paths.d/999-uni-nvm`.
@@ -54,10 +55,8 @@ Prioritized; none are critical. Original review IDs in brackets.
 3. **[L#14] `bin/no-npm-install.js` only prints, never `exit(1)`.** So `npm install universal-nvm` isn't
    actually blocked. Either `process.exit(1)` or stop calling it a "guard" and document as advisory.
 4. **[L#18] `uninstall.js` failure-path message says "Removed … failed".** Success wording in a catch block — fix the message.
-5. **[L#13] `check-registry.js` is dead code.** Bug itself is moot (already uses `url.hostname`), but it's still
-   shipped in `package.json` `files` and referenced nowhere. Remove or wire up.
-6. **[M#9b] `cleanup.js` doesn't sweep stale `nvm_env*` temp files.** Minor housekeeping; verify and add.
-7. **[opt] Defense-in-depth integrity check.** Optional `SHASUMS256.txt` verification to cover `--no-ssl` /
+5. **[M#9b] `cleanup.js` doesn't sweep stale `nvm_env*` temp files.** Minor housekeeping; verify and add.
+6. **[opt] Defense-in-depth integrity check.** Optional `SHASUMS256.txt` verification to cover `--no-ssl` /
    mirror / http modes. User's call — deemed optional given default-path reasoning.
 
 ## 🚫 Decided not to fix

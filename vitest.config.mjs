@@ -20,7 +20,7 @@ export default defineConfig({
         '**/*.config.*',    // webpack.config.js, vitest.config.mjs
         'xclap.js',         // xrun task definitions
         'pack.js',          // packaging script
-        'check-registry.js' // standalone registry diagnostic
+        'tools/**'          // standalone maintenance scripts (e.g. check-registry)
       ]
     },
     // Separate test timeouts for different test types
