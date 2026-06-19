@@ -1,6 +1,6 @@
 # Review status — security/quality pass (2026-06)
 
-Last updated: **2026-06-14** · branch `main` · v1.11.1
+Last updated: **2026-06-19** · branch `main` · v1.11.1
 
 A full cross-platform review ran in 2026-06. The dominant risk class was untrusted strings (from
 `.nvmrc` / `.node-version` / `package.json`) flowing into shell/PowerShell code that gets
@@ -40,6 +40,10 @@ Most of the rest has also landed. This file tracks what's done vs. what remains.
 - **L#15 — webpack babel `exclude`.** Now `/node_modules/`.
 - **L#16 — dist `.map` shipped to consumers.** `package.json` `files` now lists `dist/unvm.js` explicitly; `.map` not shipped.
 - **L#17 (partial) — nvx Linux `--install-to-system`.** `/etc/environment` now written atomically (tmp + `mv`); uninstaller removes `/etc/paths.d/999-uni-nvm`.
+- **Build hygiene — committed `dist/` had drifted from `lib/`.** Source fixes `d9327f2` / `7a481b2` / `b1379ef`
+  landed without rebundling, so the shipped `dist/unvm.js` was missing them. Rebuilt (`2c67caf`) and now guarded:
+  `xrun check-dist` / `fyn run check:dist` (CI job **Dist Freshness**) cleans + rebuilds the bundle and fails if
+  the committed `dist/` differs from a fresh build — caught before a stale bundle can be published again.
 
 ## 🔧 Remaining backlog
 
@@ -81,8 +85,10 @@ Prioritized; none are critical. Original review IDs in brackets.
   By design, and it matches `npx`: npx also resolves local `.bin` → `$PATH`. The trait that defines npx — and
   that nvx deliberately drops — is auto-**fetching** a package from the npm registry to run it. nvx never
   fetches ("npx without the registry download"), so the PATH fallthrough is expected, not a contract violation —
-  no warn/error guard wanted. (Was an unverified agent-reported finding; the "node_modules only" line in the
-  contract means "no fetching," not "must live in node_modules.")
+  no warn/error guard wanted. **Live-verified 2026-06-19:** from a project with a local
+  `node_modules/.bin/greet`, `nvx greet hello world` runs the local stub; `nvx node --version` (not in local
+  `.bin`) falls through to PATH (`v26.3.0`). The "node_modules only" line in the contract means "no fetching,"
+  not "must live in node_modules."
 
 ## 🧪 Test gaps (largely open)
 
