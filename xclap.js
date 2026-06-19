@@ -74,6 +74,40 @@ xclap.load("nvm", {
   bundle: "webpack",
   publish: "npm publish",
 
+  "local-install": {
+    desc: "Build, then copy dist/bin/package.json into NVM_HOME (default ~/.unvm) for local testing",
+    dep: ["bundle"],
+    task() {
+      const Os = require("os");
+      const nvmHome = process.env.NVM_HOME || Path.join(Os.homedir(), ".unvm");
+
+      if (!Fs.existsSync(nvmHome)) {
+        throw new Error(
+          `NVM_HOME "${nvmHome}" does not exist -- run the installer once before local-install`
+        );
+      }
+
+      // Mirror installNvm() in install.sh, minus the network fetch: overlay the
+      // freshly built dist/ and bin/ and the package.json onto the install.
+      for (const dir of ["dist", "bin"]) {
+        const dest = Path.join(nvmHome, dir);
+        Fs.mkdirSync(dest, { recursive: true });
+        Fs.cpSync(Path.resolve(dir), dest, { recursive: true });
+      }
+      Fs.copyFileSync(Path.resolve("package.json"), Path.join(nvmHome, "package.json"));
+
+      // cpSync preserves source mode, but re-assert execute bits to be safe.
+      for (const exe of ["nvx", "universal-nvm-uninstall.sh"]) {
+        const exePath = Path.join(nvmHome, "bin", exe);
+        if (Fs.existsSync(exePath)) {
+          Fs.chmodSync(exePath, 0o755);
+        }
+      }
+
+      console.log(`Copied local build (dist, bin, package.json) to ${nvmHome}`);
+    }
+  },
+
   version: {
     desc: "Bump version for release",
     dep: ["bundle", "~$git diff --quiet"],
