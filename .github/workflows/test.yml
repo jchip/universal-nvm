@@ -97,6 +97,28 @@ jobs:
       - name: Run all tests
         run: fyn run test
 
+  dist-freshness:
+    name: Dist Freshness
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install fyn
+        run: npm install -g fyn
+
+      - name: Install dependencies
+        run: fyn install
+
+      - name: Verify committed dist/ matches a fresh build
+        run: fyn run check:dist
+
   docker-integration-tests:
     name: Docker Integration Tests (Linux)
     runs-on: ubuntu-latest

@@ -16,6 +16,7 @@
     "test:e2e": "xrun -s build && vitest run test/e2e",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "check:dist": "xrun check-dist",
     "preversion": "echo Do not run npm version, run xrun version --major,minor,patch && exit 1",
     "prepublishOnly": "echo Do not run npm publish, run xrun release && exit 1",
     "preinstall": "node bin/no-npm-install.js",

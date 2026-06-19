@@ -74,6 +74,23 @@ xclap.load("nvm", {
   bundle: "webpack",
   publish: "npm publish",
 
+  "check-dist": {
+    desc: "Rebuild the bundle and fail if committed dist/ is stale (catches lib/ edits committed without rebundling)",
+    task: ["nvm/.clean-dist", "nvm/bundle", "nvm/.assert-dist-clean"]
+  },
+
+  ".assert-dist-clean"() {
+    const { execFileSync } = require("child_process");
+    try {
+      execFileSync("git", ["diff", "--exit-code", "--", "dist"], { stdio: "inherit" });
+    } catch {
+      throw new Error(
+        "dist/ is stale: rebuilding produced a different bundle than what is committed. " +
+          "Run `xrun bundle` (or `fyn run build`) and commit the updated dist/."
+      );
+    }
+  },
+
   "local-install": {
     desc: "Build, then copy dist/bin/package.json into NVM_HOME (default ~/.unvm) for local testing",
     dep: ["bundle"],
