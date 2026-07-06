@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll } from 'vitest';
+import os from 'os';
 import Path from 'path';
-import { readFile, rm } from 'fs/promises';
+import { readFile, rm, mkdtemp } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -23,5 +24,17 @@ describe("install", () => {
     await install.doExtract(zipFile, fixtureDir);
     const data = await readFile(Path.join(zipOutputDir, "README.md"), "utf8");
     expect(data).toContain("delete me");
+  });
+
+  it("install() returns false when the cached archive is missing", async () => {
+    // Regression: install() used to return undefined on failure, so cmdInstall
+    // could not tell success from failure and exited 0 on a failed install.
+    const targetPath = await mkdtemp(Path.join(os.tmpdir(), "nvm-install-test-"));
+    try {
+      const result = await install.install(targetPath, "v0.0.0-does-not-exist", false);
+      expect(result).toBe(false);
+    } finally {
+      await rm(targetPath, { recursive: true, force: true });
+    }
   });
 });
