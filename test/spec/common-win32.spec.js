@@ -229,4 +229,37 @@ describe('common-win32 utility functions', () => {
       // This test requires complex mocking of opfs module
     });
   });
+
+  describe('_newPathCmd (PATH registry rewrite)', () => {
+    it('writes via reg.exe and never setx, so a >1024-char Path is not truncated', () => {
+      const long = Array.from(
+        { length: 60 },
+        (_, i) => `C:\\dir_${i}_padding_padding_padding_padding`
+      ).join(';');
+      const cmd = commonWin32._newPathCmd(long, true, true);
+
+      expect(cmd).toContain('reg.exe add');
+      expect(cmd).not.toMatch(/setx/i);
+      // the last (far past 1024 chars) entry survives -> no truncation
+      expect(cmd).toContain('C:\\dir_59_padding_padding_padding_padding');
+    });
+
+    it('escapes % so REG_EXPAND_SZ references stay literal instead of expanding', () => {
+      const cmd = commonWin32._newPathCmd('%USERPROFILE%\\bin', true, true);
+      expect(cmd).toContain('%%USERPROFILE%%');
+    });
+
+    it('refuses to rewrite when the query succeeded but parsed no value (no wipe)', () => {
+      // readOk=true + empty value == parse miss on a populated Path -> must not clobber
+      const cmd = commonWin32._newPathCmd('', true, true);
+      expect(cmd).not.toContain('reg.exe add');
+      expect(cmd.toLowerCase()).toContain('skipped');
+    });
+
+    it('creates the nvm Path when the user genuinely has no Path value', () => {
+      // readOk=false == reg.exe reported the value absent -> safe to create
+      const cmd = commonWin32._newPathCmd('', true, false);
+      expect(cmd).toContain('reg.exe add');
+    });
+  });
 });
