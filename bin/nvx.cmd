@@ -31,11 +31,13 @@ if exist "%SEARCH_DIR%\node_modules\.bin" (
 
 REM Move to parent directory
 for %%i in ("%SEARCH_DIR%") do set "PARENT_DIR=%%~dpi"
-REM Remove trailing backslash
-set "PARENT_DIR=%PARENT_DIR:~0,-1%"
+REM %~dp always ends with a backslash. Strip it, EXCEPT for a drive root (X:\):
+REM stripping that yields a bare "X:", which cmd re-resolves against the drive's
+REM current directory, bouncing the walk back to the start dir and looping forever.
+if not "%PARENT_DIR:~-2%"==":\" set "PARENT_DIR=%PARENT_DIR:~0,-1%"
 
-REM Check if we've reached the root
-if "%SEARCH_DIR%"=="%PARENT_DIR%" goto :search_done
+REM Reached the top once the parent stops changing (a root is its own parent)
+if /i "%SEARCH_DIR%"=="%PARENT_DIR%" goto :search_done
 if "%PARENT_DIR%"=="" goto :search_done
 
 set "SEARCH_DIR=%PARENT_DIR%"
