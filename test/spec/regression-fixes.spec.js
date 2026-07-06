@@ -183,3 +183,48 @@ describe('switch-deactivate removes a dangling default-version symlink', () => {
     await expect(fs.lstat(link)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });
+
+// Regression: switch (`nvm link`) guarded the existing-link check with
+// common._exists (fs.access), which follows symlinks and reports a *dangling*
+// NVM_LINK symlink as missing -- so it skipped the unlink and the following
+// symlink() threw EEXIST. It must detect the link itself (lstat) and replace it.
+describe('switch (nvm link) replaces a dangling NVM_LINK symlink', () => {
+  const switchLink = require('../../lib/switch');
+  let tmpDir;
+  let originalEnv;
+  let originalExit;
+
+  beforeEach(async () => {
+    originalEnv = { ...process.env };
+    originalExit = common.exit;
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nvm-link-switch-test-'));
+    process.env.NVM_HOME = tmpDir;
+    process.env.NVM_TMPDIR = tmpDir;
+    delete process.env.NVM_USE;
+    common.exit = () => {
+      throw new Error('switch called common.exit');
+    };
+    // an installed version so findNodeVersion succeeds
+    await fs.mkdir(path.join(tmpDir, 'nodejs', 'v20.0.0', 'bin'), { recursive: true });
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    common.exit = originalExit;
+    await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+  });
+
+  onPosix('unlinks a dangling link and relinks without EEXIST', async () => {
+    const link = path.join(tmpDir, 'nodejs', 'bin');
+    await fs.symlink(path.join(tmpDir, 'gone'), link); // target does not exist
+    process.env.NVM_LINK = link;
+
+    // document the bug: access() follows the link and says "missing"
+    expect(await common._exists(link)).toBe(false);
+    expect((await fs.lstat(link)).isSymbolicLink()).toBe(true);
+
+    await switchLink('20.0.0'); // must not throw EEXIST
+
+    expect(await fs.readlink(link)).toBe(path.join(tmpDir, 'nodejs', 'v20.0.0', 'bin'));
+  });
+});
