@@ -1,5 +1,7 @@
 @echo off
-setlocal enabledelayedexpansion
+REM No 'enabledelayedexpansion': it would consume '!' in forwarded arguments
+REM (e.g. nvx node -e "console.log('yes!')"). Nothing below needs it.
+setlocal
 
 REM nvx - Execute commands with local node_modules/.bin in PATH
 
