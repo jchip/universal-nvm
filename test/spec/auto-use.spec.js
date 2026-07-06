@@ -119,6 +119,27 @@ describe('Auto-use functionality', () => {
 
       expect(result).toBeNull();
     });
+
+    it('should resolve a semver range in .nvmrc to the highest installed match', async () => {
+      // Regression: "20.10.x" was treated as an exact version and reported
+      // "not installed" even though v20.10.0 is installed.
+      await fs.writeFile(path.join(testDir, '.nvmrc'), '20.10.x');
+
+      const result = await autoUse({ silent: false });
+
+      expect(result).not.toBeNull();
+      expect(result.version).toBe('v20.10.0');
+      expect(result.source).toBe('.nvmrc');
+    });
+
+    it('should resolve a caret range in .nvmrc to the highest installed match', async () => {
+      await fs.writeFile(path.join(testDir, '.nvmrc'), '^20.10.0');
+
+      const result = await autoUse({ silent: false });
+
+      expect(result).not.toBeNull();
+      expect(result.version).toBe('v20.11.1');
+    });
   });
 
   describe('.node-version file', () => {

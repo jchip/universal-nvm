@@ -38,6 +38,25 @@ describe("common utility functions", () => {
       expect(common.isFullVersion("v22")).toBe(false);
       expect(common.isFullVersion("v18")).toBe(false);
     });
+
+    it("should return false for semver ranges that have three dot-parts", () => {
+      // Regression: dot-counting misclassified these as exact versions, so they
+      // skipped range resolution and reported "not installed".
+      expect(common.isFullVersion("20.10.x")).toBe(false);
+      expect(common.isFullVersion("^20.10.0")).toBe(false);
+      expect(common.isFullVersion("~20.10.0")).toBe(false);
+      expect(common.isFullVersion(">=18.0.0")).toBe(false);
+    });
+
+    it("should return true for exact versions with or without a 'v' prefix", () => {
+      expect(common.isFullVersion("20.10.0")).toBe(true);
+      expect(common.isFullVersion("v20.10.0")).toBe(true);
+    });
+
+    it("should treat a fully-pinned prerelease as an exact version", () => {
+      expect(common.isFullVersion("v20.10.0-rc.1")).toBe(true);
+      expect(common.isFullVersion("20.10.0-nightly")).toBe(true);
+    });
   });
 
   describe("sortVersions", () => {
