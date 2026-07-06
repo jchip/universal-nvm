@@ -101,6 +101,24 @@ describe('common-win32 utility functions', () => {
 
       archSpy.mockRestore();
     });
+
+    it('should select win-arm64 on arm64 for versions with an arm64 build (>= v19.9.0)', () => {
+      const archSpy = vi.spyOn(os, 'arch').mockReturnValue('arm64');
+
+      expect(commonWin32.makeNodeDistName('v20.10.0')).toBe('node-v20.10.0-win-arm64');
+      expect(commonWin32.makeNodeDistName('v19.9.0')).toBe('node-v19.9.0-win-arm64');
+
+      archSpy.mockRestore();
+    });
+
+    it('should fall back to x64 on arm64 for versions without an arm64 build (< v19.9.0)', () => {
+      const archSpy = vi.spyOn(os, 'arch').mockReturnValue('arm64');
+
+      expect(commonWin32.makeNodeDistName('v18.20.0')).toBe('node-v18.20.0-win-x64');
+      expect(commonWin32.makeNodeDistName('v19.8.1')).toBe('node-v19.8.1-win-x64');
+
+      archSpy.mockRestore();
+    });
   });
 
   describe('cacheFileName', () => {
