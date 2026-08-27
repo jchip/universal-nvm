@@ -5,7 +5,7 @@ $pkg:
  dep:
   chalker: ^1.2.0
   extract-zip: ^2.0.1
-  fd-slicer: 'github:jchip/node-fd-slicer'
+  fd-slicer: 'file:./vendor/fd-slicer'
   lodash: ^4.17.20
   needle: ^3.2.0
   nix-clap: ^1.3.12
@@ -2225,7 +2225,7 @@ color-convert:
   dependencies:
    color-name: 1.1.3
 color-name:
- _latest: 2.1.0
+ _latest: 2.1.1
  _:
   1.1.3: 1.1.3
   ~1.1.4: 1.1.4
@@ -2543,12 +2543,13 @@ fastest-levenshtein:
   $: sha512-eRnCtTTtGZFpQCwhJiUOuxPQWRXVKYDn0b2PeHfXL6/Zi53SLAzAHfVhVWK2AryC/WH05kGfxhFIPvTF0SXQzg==
   _: 'https://registry.npmjs.org/fastest-levenshtein/-/fastest-levenshtein-1.0.16.tgz'
 fd-slicer:
+ _latest: 1.1.0-fynlocal_h
  _:
-  'github:jchip/node-fd-slicer,~1.1.0': 1.1.0
- 1.1.0:
+  'file:./vendor/fd-slicer,~1.1.0': 1.1.0-fynlocal_h
+ 1.1.0-fynlocal_h:
   top: 1
-  $: sha512-FVy0YiQoBUcF9E6HihfWHXdmlG2AvHYVXOn6UjqOW3M/awvz4U0KRQdstBQEUp1zzH1UILZ0XMzJGLeZ6hYenw==
-  _: '~url-spec~{"urlType":"github","semver":"github:jchip/node-fd-slicer","_resolved":"github:jchip/node-fd-slicer#607e480e02f424501609b7ccd751f0781fa5f371"}'
+  $: local
+  _: ./vendor/fd-slicer
   dependencies:
    pend: ~1.2.0
 fdir:
