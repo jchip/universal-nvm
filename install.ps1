@@ -43,25 +43,25 @@ function Find-Folders {
     $browse.Dispose()
 }
 
-function getLtsVersion() {
+function getTargetVersion() {
     $nodejsVersionsUrl = "https://nodejs.org/dist/index.json"
-    $foundVersion = "v24.16.0"
+    $targetNodeMajor = "26"
+    $foundVersion = "v26.8.1"
 
     Try {
-        $lts = Invoke-WebRequest "$nodejsVersionsUrl" | ConvertFrom-Json
+        $versions = Invoke-WebRequest "$nodejsVersionsUrl" | ConvertFrom-Json
 
-        foreach ($q in $lts) {
-            if ($q.lts -ne $false) {
-                $v = $q.version
+        # index.json is sorted newest first, so the first match is the latest release
+        foreach ($q in $versions) {
+            $v = $q.version
 
-                if (-not ($v.StartsWith("v"))) {
-                    $v = "v" + $v
-                }
+            if (-not ($v.StartsWith("v"))) {
+                $v = "v" + $v
+            }
 
-                if ($v -match "^v\d+\.\d+\.\d+$") {
-                    $foundVersion = $v
-                    break
-                }
+            if ($v -match "^v$targetNodeMajor\.\d+\.\d+$") {
+                $foundVersion = $v
+                break
             }
         }
     }
@@ -71,7 +71,7 @@ function getLtsVersion() {
     return $foundVersion
 }
 
-$DefaultNodeVersion = getLtsVersion
+$DefaultNodeVersion = getTargetVersion
 
 function Get-NodeJS($version) {
     Try {

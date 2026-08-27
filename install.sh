@@ -66,24 +66,27 @@ function tmpdir() {
 }
 
 VERSIONS_TAB_FILE_URL="https://nodejs.org/dist/index.tab"
+TARGET_NODE_MAJOR="26"
+FALLBACK_NODE_VERSION="v26.8.1"
 
-function getLtsVersionByTabFile() {
+function getTargetVersionByTabFile() {
   TAB_FILE="$(tmpdir)/nodejs.versions.tab"
 
   fetch $VERSIONS_TAB_FILE_URL $TAB_FILE
   local fv
-  fv=$(cut -f1,10 "$TAB_FILE" | tail -n +2 | egrep -v $'\t-$' | head -1 | cut -f1 | egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+$')
+  # index.tab is sorted newest first, so the first matching line is the latest release
+  fv=$(cut -f1 "$TAB_FILE" | egrep -o "^v${TARGET_NODE_MAJOR}\.[0-9]+\.[0-9]+$" | head -1)
 
   if [ -n "$fv" ]; then
     echo "$fv"
   else
-    echo "v24.16.0"
+    echo "$FALLBACK_NODE_VERSION"
   fi
 }
 
-echo "Checking for latest node.js LTS from ${VERSIONS_TAB_FILE_URL}"
-DEFAULT_NODE_VERSION=$(getLtsVersionByTabFile)
-echo "Determined node.js LTS version to be $DEFAULT_NODE_VERSION"
+echo "Checking for latest node.js ${TARGET_NODE_MAJOR}.x from ${VERSIONS_TAB_FILE_URL}"
+DEFAULT_NODE_VERSION=$(getTargetVersionByTabFile)
+echo "Determined node.js version to be $DEFAULT_NODE_VERSION"
 
 function getOs() {
   uname -s | tr "[:upper:]" "[:lower:]"

@@ -49,7 +49,7 @@ const nodeConfig = Object.assign({}, base, {
         use: {
           loader: "babel-loader",
           options: {
-            presets: [["@babel/env", { targets: { node: "24" } }]]
+            presets: [["@babel/env", { targets: { node: "26" } }]]
           }
         }
       }
