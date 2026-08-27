@@ -66,16 +66,21 @@ function tmpdir() {
 }
 
 VERSIONS_TAB_FILE_URL="https://nodejs.org/dist/index.tab"
-TARGET_NODE_MAJOR="26"
+# Bootstrap on the newest LTS rather than a pinned major: this node is the one
+# unvm runs itself on, so it should track the line Node supports longest, not
+# whatever is Current at release time. The fallback is only reached when the
+# version list can't be fetched or parsed, and is deliberately a known-good
+# pinned build rather than an LTS guess that would go stale the same way.
 FALLBACK_NODE_VERSION="v26.8.1"
 
-function getTargetVersionByTabFile() {
+function getLtsVersionByTabFile() {
   TAB_FILE="$(tmpdir)/nodejs.versions.tab"
 
   fetch $VERSIONS_TAB_FILE_URL $TAB_FILE
   local fv
-  # index.tab is sorted newest first, so the first matching line is the latest release
-  fv=$(cut -f1 "$TAB_FILE" | egrep -o "^v${TARGET_NODE_MAJOR}\.[0-9]+\.[0-9]+$" | head -1)
+  # Column 10 is "lts": a codename for LTS releases, "-" for everything else.
+  # index.tab is sorted newest first, so the first non-"-" row is the latest LTS.
+  fv=$(cut -f1,10 "$TAB_FILE" | tail -n +2 | egrep -v $'\t-$' | head -1 | cut -f1 | egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+$')
 
   if [ -n "$fv" ]; then
     echo "$fv"
@@ -84,9 +89,9 @@ function getTargetVersionByTabFile() {
   fi
 }
 
-echo "Checking for latest node.js ${TARGET_NODE_MAJOR}.x from ${VERSIONS_TAB_FILE_URL}"
-DEFAULT_NODE_VERSION=$(getTargetVersionByTabFile)
-echo "Determined node.js version to be $DEFAULT_NODE_VERSION"
+echo "Checking for latest node.js LTS from ${VERSIONS_TAB_FILE_URL}"
+DEFAULT_NODE_VERSION=$(getLtsVersionByTabFile)
+echo "Determined node.js LTS version to be $DEFAULT_NODE_VERSION"
 
 function getOs() {
   uname -s | tr "[:upper:]" "[:lower:]"
