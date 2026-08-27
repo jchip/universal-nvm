@@ -112,6 +112,55 @@ describe('Auto-use functionality', () => {
       expect(result.version).toBe('v20.10.0');
     });
 
+    // Regression (UNV-8): the file was read as "ascii", which masks the high bit
+    // off every byte instead of validating, so Notepad's UTF-8 BOM turned
+    // "20.10.0" into "o;?20.10.0" and hard-failed with a bogus "invalid version".
+    it('should handle a .nvmrc written with a UTF-8 BOM', async () => {
+      await fs.writeFile(
+        path.join(testDir, '.nvmrc'),
+        Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from('20.10.0')])
+      );
+
+      const result = await autoUse({ silent: false });
+
+      expect(result).not.toBeNull();
+      expect(result.version).toBe('v20.10.0');
+      expect(result.source).toBe('.nvmrc');
+    });
+
+    // Regression (UNV-8): v1.11.1 treated an empty file as the "*" range and
+    // picked the highest installed version; a !versionSpec guard turned it into
+    // a hard exit 1.
+    it('should treat an empty .nvmrc as "*" and use the highest installed', async () => {
+      await fs.writeFile(path.join(testDir, '.nvmrc'), '');
+
+      const result = await autoUse({ silent: false });
+
+      expect(result).not.toBeNull();
+      expect(result.version).toBe('v22.0.0');
+      expect(result.source).toBe('.nvmrc');
+    });
+
+    it('should treat a whitespace-only .nvmrc as "*"', async () => {
+      await fs.writeFile(path.join(testDir, '.nvmrc'), '  \n\t\n');
+
+      const result = await autoUse({ silent: false });
+
+      expect(result).not.toBeNull();
+      expect(result.version).toBe('v22.0.0');
+    });
+
+    // A BOM is the only non-ASCII byte sequence that gets a pass -- it is
+    // stripped as whitespace. Real non-ASCII content must still be rejected at
+    // the semver boundary rather than smuggled through the wider encoding.
+    it('should still reject a .nvmrc with non-ASCII content', async () => {
+      await fs.writeFile(path.join(testDir, '.nvmrc'), '20.10.0 ; rm -rf /');
+
+      const result = await autoUse({ silent: false });
+
+      expect(result).toBeNull();
+    });
+
     it('should return null for invalid version in .nvmrc', async () => {
       await fs.writeFile(path.join(testDir, '.nvmrc'), 'invalid-version');
 
