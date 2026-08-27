@@ -204,22 +204,67 @@ describe('common-posix utility functions', () => {
     });
   });
 
+  // These were three empty it.skip stubs citing "deep mocking of opfs". opfs was
+  // dropped (90fb8f2) and this is now plain fs.promises against a real path, so
+  // there is nothing left to mock -- a temp dir is enough.
   describe('createEnvironmentTmp', () => {
-    // Skip these tests as they require deep mocking of opfs which is complex
-    // The functionality is tested via E2E tests
-    it.skip('should create environment file with default content', async () => {
-      // This test requires complex mocking of opfs module
-      // Tested via E2E tests instead
+    const fs = require('fs');
+    let envDir;
+
+    beforeEach(() => {
+      envDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvm-envtmp-'));
     });
 
-    it.skip('should use custom content when provided', async () => {
-      // This test requires complex mocking of opfs module
-      // Tested via E2E tests instead
+    afterEach(() => {
+      fs.rmSync(envDir, { recursive: true, force: true });
     });
 
-    it.skip('should handle empty NVM_USE', async () => {
-      // This test requires complex mocking of opfs module
-      // Tested via E2E tests instead
+    it('should create environment file with default content', async () => {
+      process.env.NVM_USE = '/nvm/v20.10.0/bin';
+      process.env.PATH = '/nvm/v20.10.0/bin:/usr/bin';
+      delete process.env.NVM_AUTO_USE_SHOWN_ERRORS;
+      const target = path.join(envDir, 'nvm_env.sh');
+
+      await commonPosix.createEnvironmentTmp(target);
+
+      const out = fs.readFileSync(target, 'utf8');
+      expect(out).toContain(`export NVM_USE='/nvm/v20.10.0/bin'`);
+      expect(out).toContain(`export PATH='/nvm/v20.10.0/bin:/usr/bin'`);
+      // the script is sourced by the shell, so it is written owner-only
+      expect(fs.statSync(target).mode & 0o777).toBe(0o600);
+    });
+
+    it('should use custom content when provided', async () => {
+      const target = path.join(envDir, 'nvm_env.sh');
+
+      await commonPosix.createEnvironmentTmp(target, 'export CUSTOM=1\n');
+
+      expect(fs.readFileSync(target, 'utf8')).toBe('export CUSTOM=1\n');
+    });
+
+    it('should handle empty NVM_USE', async () => {
+      delete process.env.NVM_USE;
+      const target = path.join(envDir, 'nvm_env.sh');
+
+      await commonPosix.createEnvironmentTmp(target);
+
+      expect(fs.readFileSync(target, 'utf8')).toContain(`export NVM_USE=''`);
+    });
+
+    // The write is temp-file + rename precisely so a shell sourcing this
+    // predictable path never sees a partial script and a pre-planted symlink is
+    // replaced rather than followed.
+    it('leaves no temp file behind and replaces rather than follows a symlink', async () => {
+      const real = path.join(envDir, 'attacker-target');
+      const target = path.join(envDir, 'nvm_env.sh');
+      fs.writeFileSync(real, 'original\n');
+      fs.symlinkSync(real, target);
+
+      await commonPosix.createEnvironmentTmp(target, 'export CUSTOM=1\n');
+
+      expect(fs.lstatSync(target).isSymbolicLink()).toBe(false);
+      expect(fs.readFileSync(real, 'utf8')).toBe('original\n');
+      expect(fs.readdirSync(envDir).filter(n => n.endsWith('.tmp'))).toEqual([]);
     });
   });
 });

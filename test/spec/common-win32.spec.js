@@ -33,23 +33,68 @@ describe('common-win32 utility functions', () => {
     process.env = originalEnv;
   });
 
+  // Previously four empty it.skip stubs blaming "deep mocking of opfs"; opfs is
+  // gone (90fb8f2) and this is fs.promises.rename plus retry bookkeeping, so a
+  // single spy covers every branch. The EPERM retry exists because Windows
+  // virus scanners and the indexer briefly hold a handle on a freshly extracted
+  // dir -- a race that E2E cannot reproduce on demand, so unit coverage is the
+  // only coverage it gets.
   describe('rename', () => {
-    // Skip these tests as they require deep mocking of opfs which is complex
-    // The rename functionality is tested via E2E tests
-    it.skip('should rename file successfully', async () => {
-      // This test requires complex mocking of opfs module
+    const fs = require('fs');
+    // NOTE: the vi.mock('xaa') at the top of this file does not intercept the
+    // CJS require inside lib/common-win32.js -- the real module is used. Spy on
+    // that same module object instead, which also keeps the backoff from
+    // actually sleeping through the retry tests.
+    const xaa = require('xaa');
+    const epermError = () => Object.assign(new Error('EPERM'), { code: 'EPERM' });
+    let delaySpy;
+
+    beforeEach(() => {
+      delaySpy = vi.spyOn(xaa, 'delay').mockResolvedValue(undefined);
     });
 
-    it.skip('should retry on EPERM error', async () => {
-      // This test requires complex mocking of opfs module
+    it('should rename file successfully', async () => {
+      const spy = vi.spyOn(fs.promises, 'rename').mockResolvedValue(undefined);
+
+      await commonWin32.rename('from.txt', 'to.txt');
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('from.txt', 'to.txt');
+      expect(delaySpy).not.toHaveBeenCalled();
     });
 
-    it.skip('should throw non-EPERM errors immediately', async () => {
-      // This test requires complex mocking of opfs module
+    it('should retry on EPERM error', async () => {
+      const spy = vi
+        .spyOn(fs.promises, 'rename')
+        .mockRejectedValueOnce(epermError())
+        .mockRejectedValueOnce(epermError())
+        .mockResolvedValue(undefined);
+
+      await commonWin32.rename('from.txt', 'to.txt');
+
+      expect(spy).toHaveBeenCalledTimes(3);
+      expect(delaySpy).toHaveBeenCalledTimes(2);
+      expect(delaySpy).toHaveBeenCalledWith(50);
     });
 
-    it.skip('should throw EPERM after max retries', async () => {
-      // This test requires complex mocking of opfs module
+    it('should throw non-EPERM errors immediately', async () => {
+      const enoent = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      const spy = vi.spyOn(fs.promises, 'rename').mockRejectedValue(enoent);
+
+      await expect(commonWin32.rename('from.txt', 'to.txt')).rejects.toThrow('ENOENT');
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(delaySpy).not.toHaveBeenCalled();
+    });
+
+    it('should throw EPERM after max retries', async () => {
+      const spy = vi.spyOn(fs.promises, 'rename').mockRejectedValue(epermError());
+
+      await expect(commonWin32.rename('from.txt', 'to.txt')).rejects.toThrow('EPERM');
+
+      // initial attempt plus retryCount 1..5, then it gives up
+      expect(spy).toHaveBeenCalledTimes(6);
+      expect(delaySpy).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -228,23 +273,53 @@ describe('common-win32 utility functions', () => {
     });
   });
 
+  // Four more ex-stubs; same stale opfs reason. Runs on any platform because the
+  // function only picks a filename and writes it -- no Windows API involved.
   describe('createEnvironmentTmp', () => {
-    // Skip these tests as they require deep mocking of opfs which is complex
-    // The functionality is tested via E2E tests
-    it.skip('should create PowerShell environment file', async () => {
-      // This test requires complex mocking of opfs module
+    const fs = require('fs');
+    let envDir;
+
+    beforeEach(() => {
+      envDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvm-win32-envtmp-'));
+      commonWin32.getTmpdir = vi.fn(() => envDir);
     });
 
-    it.skip('should create CMD environment file', async () => {
-      // This test requires complex mocking of opfs module
+    afterEach(() => {
+      delete process.env.NVM_POWERSHELL;
+      fs.rmSync(envDir, { recursive: true, force: true });
     });
 
-    it.skip('should use custom content when provided', async () => {
-      // This test requires complex mocking of opfs module
+    it('should create PowerShell environment file', async () => {
+      process.env.NVM_POWERSHELL = '1';
+
+      await commonWin32.createEnvironmentTmp();
+
+      expect(commonWin32.getEnvFile).toHaveBeenCalledWith('.ps1');
+      expect(fs.existsSync(path.join(envDir, 'nvm_env.ps1'))).toBe(true);
     });
 
-    it.skip('should use custom file path when provided', async () => {
-      // This test requires complex mocking of opfs module
+    it('should create CMD environment file', async () => {
+      delete process.env.NVM_POWERSHELL;
+
+      await commonWin32.createEnvironmentTmp();
+
+      expect(commonWin32.getEnvFile).toHaveBeenCalledWith('.cmd');
+      expect(fs.existsSync(path.join(envDir, 'nvm_env.cmd'))).toBe(true);
+    });
+
+    it('should use custom content when provided', async () => {
+      await commonWin32.createEnvironmentTmp(undefined, 'SET "CUSTOM=1"\n');
+
+      expect(fs.readFileSync(path.join(envDir, 'nvm_env.cmd'), 'utf8')).toBe('SET "CUSTOM=1"\n');
+    });
+
+    it('should use custom file path when provided', async () => {
+      const target = path.join(envDir, 'custom-env.cmd');
+
+      await commonWin32.createEnvironmentTmp(target, 'SET "CUSTOM=1"\n');
+
+      expect(fs.readFileSync(target, 'utf8')).toBe('SET "CUSTOM=1"\n');
+      expect(fs.existsSync(path.join(envDir, 'nvm_env.cmd'))).toBe(false);
     });
   });
 
