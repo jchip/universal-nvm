@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     wget \
     libicu70 \
+    # Node 26 links against libatomic; without it the downloaded node aborts with
+    # "error while loading shared libraries: libatomic.so.1" and every test that
+    # shells out to node fails with "node: command not found".
+    libatomic1 \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 

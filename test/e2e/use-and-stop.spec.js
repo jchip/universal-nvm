@@ -169,7 +169,10 @@ describe('E2E: nvm use and nvm stop', () => {
       const envFile = env.getEnvFilePath();
       if (fs.existsSync(envFile)) {
         const envContent = fs.readFileSync(envFile, 'utf8');
-        expect(envContent).toContain("NVM_USE=''");
+        // The env script is written in the host shell's own syntax: a POSIX
+        // `export NVM_USE=''` vs a batch `SET "NVM_USE="`.
+        const cleared = process.platform === 'win32' ? 'SET "NVM_USE="' : "NVM_USE=''";
+        expect(envContent).toContain(cleared);
       }
     }, 20000);
   });

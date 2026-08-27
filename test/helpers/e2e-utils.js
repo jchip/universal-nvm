@@ -310,9 +310,12 @@ class E2ETestEnv {
     const linkPath = path.join(this.nvmHome, 'nodejs', 'bin');
 
     try {
-      // Read symlink or junction; target is <version>/bin
       const target = fs.readlinkSync(linkPath);
-      return path.basename(path.dirname(target));
+      // POSIX links to <version>/bin, but Windows links to <version> itself --
+      // node.exe sits in the version dir, so common-win32.getNodeBinDir returns
+      // nodeDir unchanged. Key off the layout rather than the platform flag.
+      const base = path.basename(target);
+      return base === 'bin' ? path.basename(path.dirname(target)) : base;
     } catch (err) {
       return null;
     }
