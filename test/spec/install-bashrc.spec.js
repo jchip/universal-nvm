@@ -132,6 +132,80 @@ describe('install_bashrc updateShellProfile', () => {
     expect(fs.readFileSync(f, 'utf8')).toContain('export FOO=1');
   });
 
+  // UNV-9: dotfile managers (chezmoi, stow, yadm) symlink the profile to a
+  // managed source. Writing through the link keeps it managed; replacing it with
+  // a regular file silently detaches it, and the user's next `chezmoi apply`
+  // fights the change. The resolver contract itself is covered in
+  // test/spec/resolve-link.spec.js -- these pin the integration.
+  describe('symlinked profiles', () => {
+    it('writes through a symlinked profile instead of replacing the link', () => {
+      const real = path.join(tmpDir, 'dotfiles-bashrc');
+      const link = path.join(tmpDir, '.bashrc');
+      fs.writeFileSync(real, '# user content\nexport FOO=1\n');
+      fs.symlinkSync(real, link);
+
+      updateShellProfile(link);
+
+      expect(fs.lstatSync(link).isSymbolicLink()).toBe(true);
+      const out = fs.readFileSync(real, 'utf8');
+      expect(out).toContain('export FOO=1');
+      expect(countBegins(out)).toBe(1);
+    });
+
+    // The regression proper: existsSync follows the link, so a not-yet-created
+    // target reported false, realpath was skipped, and rename clobbered the link.
+    it('writes through a DANGLING symlinked profile, creating its target', () => {
+      const real = path.join(tmpDir, 'dotfiles-bashrc');
+      const link = path.join(tmpDir, '.bashrc');
+      fs.symlinkSync(real, link); // target does not exist yet
+
+      updateShellProfile(link);
+
+      expect(fs.lstatSync(link).isSymbolicLink()).toBe(true);
+      expect(fs.existsSync(real)).toBe(true);
+      expect(countBegins(fs.readFileSync(real, 'utf8'))).toBe(1);
+    });
+
+    it('follows a chain of symlinks to the real profile', () => {
+      const real = path.join(tmpDir, 'real-bashrc');
+      const mid = path.join(tmpDir, 'mid-bashrc');
+      const link = path.join(tmpDir, '.bashrc');
+      fs.writeFileSync(real, '# user content\nexport FOO=1\n');
+      fs.symlinkSync(real, mid);
+      fs.symlinkSync(mid, link);
+
+      updateShellProfile(link);
+
+      expect(fs.lstatSync(link).isSymbolicLink()).toBe(true);
+      expect(fs.lstatSync(mid).isSymbolicLink()).toBe(true);
+      expect(fs.readFileSync(real, 'utf8')).toContain('export FOO=1');
+    });
+
+    it('preserves the target permission bits through a symlink', () => {
+      const real = path.join(tmpDir, 'dotfiles-bashrc');
+      const link = path.join(tmpDir, '.bashrc');
+      fs.writeFileSync(real, '# user\n');
+      fs.chmodSync(real, 0o600);
+      fs.symlinkSync(real, link);
+
+      updateShellProfile(link);
+
+      expect(fs.statSync(real).mode & 0o777).toBe(0o600);
+    });
+
+    it('leaves no temp file beside a symlinked profile', () => {
+      const real = path.join(tmpDir, 'dotfiles-bashrc');
+      const link = path.join(tmpDir, '.bashrc');
+      fs.writeFileSync(real, '# user\n');
+      fs.symlinkSync(real, link);
+
+      updateShellProfile(link);
+
+      const realDir = fs.realpathSync(tmpDir);
+      expect(fs.readdirSync(realDir).filter(n => n.endsWith('.tmp'))).toEqual([]);
+    });
+  });
+
   it('leaves no temp file behind after updating', () => {
     const f = path.join(tmpDir, '.bashrc');
     fs.writeFileSync(f, '# user\nexport FOO=1\n');

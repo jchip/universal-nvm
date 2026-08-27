@@ -3,6 +3,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { resolveLinkTarget } = require("./resolve-link");
 
 const homeDir = os.homedir();
 
@@ -54,11 +55,20 @@ const commands = [
 // and we write through to its real target, and carry over the existing file's
 // permission bits -- both matching the previous in-place fs.writeFileSync.
 function writeFileAtomicSync(file, data) {
-  let target = file;
+  // resolveLinkTarget, not existsSync+realpathSync: existsSync follows the link,
+  // so a profile symlinked to a not-yet-created target reported false, resolution
+  // was skipped, and the rename below replaced the SYMLINK with a regular file --
+  // silently detaching a chezmoi/stow-managed dotfile. See bin/resolve-link.js.
+  const target = resolveLinkTarget(file);
+
   let mode; // undefined => let umask pick the default for a brand-new file
-  if (fs.existsSync(file)) {
-    target = fs.realpathSync(file);
+  try {
     mode = fs.statSync(target).mode & 0o777;
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+    // nothing there yet (new profile, or the dangling tail of a link chain)
   }
 
   const unique = `${process.pid}.${Math.random().toString(36).slice(2)}`;

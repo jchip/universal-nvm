@@ -1,0 +1,46 @@
+# Shared behavior contract for the symlink resolver, driven against BOTH
+# implementations by test/spec/resolve-link.spec.js:
+#   bin/resolve-link.js  (used by bin/install_bashrc.js  -- UNV-9)
+#   bin/resolve-link.sh  (used by bin/nvx                -- UNV-10)
+#
+# Adding a case here tests both. If the two ever need to diverge, that is a bug
+# in one of them, not a reason to split this file.
+#
+# Format:  name | setup | input | expected
+#   setup   ";"-separated ops, or "-" for none:
+#             dir:<path>            mkdir -p
+#             file:<path>           write a regular file
+#             link:<path>-><target> symlink, target used verbatim (relative stays relative)
+#   input   path handed to the resolver, relative to the case's temp dir
+#   expected  $T = the temp dir (already canonicalized), or the literal ELOOP
+
+# A plain file resolves to itself.
+regular file|file:profile|profile|$T/profile
+
+# A path that does not exist is not a link; it resolves to itself so the caller
+# can create it. (This is the case existsSync+realpathSync got right by accident
+# and the one below got wrong.)
+missing file|-|profile|$T/profile
+
+# The ordinary dotfile-manager layout: .bashrc -> ~/.dotfiles/bashrc
+symlink to existing file|file:real;link:profile->real|profile|$T/real
+
+# UNV-9 / UNV-10 core case: the link's target does not exist yet. existsSync
+# follows the link and reports false, so realpath was skipped and rename(2)
+# clobbered the link itself.
+dangling symlink|link:profile->missing|profile|$T/missing
+
+# Chains must be followed to the end, not just one hop.
+symlink chain|file:c;link:b->c;link:profile->b|profile|$T/c
+symlink chain with dangling tail|link:b->missing;link:profile->b|profile|$T/missing
+
+# A relative link resolves against the directory holding the link, not cwd.
+relative link in subdir|dir:sub;file:real;link:sub/profile->../real|sub/profile|$T/real
+relative link same dir|file:real;link:profile->./real|profile|$T/real
+
+# A symlinked parent directory is canonicalized (the temp file for the atomic
+# rename has to land in the real directory -- rename cannot cross filesystems).
+symlinked parent dir|dir:realdir;file:realdir/profile;link:linkdir->realdir|linkdir/profile|$T/realdir/profile
+
+# A cycle must be reported, not spun on.
+symlink loop|link:a->b;link:b->a|a|ELOOP
