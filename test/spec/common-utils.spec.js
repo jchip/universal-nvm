@@ -489,4 +489,33 @@ describe("common utility functions", () => {
       expect(common.getEnvFile(".ps1")).toBe("nvm_env456.ps1");
     });
   });
+
+  describe("ckEscape", () => {
+    const ck = require("chalker");
+
+    it("should escape chalker markup characters", () => {
+      expect(common.ckEscape(">=18.0.0")).toBe("&gt;=18.0.0");
+      expect(common.ckEscape("<20")).toBe("&lt;20");
+      expect(common.ckEscape("a&b")).toBe("a&amp;b");
+    });
+
+    it("should leave plain versions untouched", () => {
+      expect(common.ckEscape("v22.11.0")).toBe("v22.11.0");
+      expect(common.ckEscape("^20.0.0")).toBe("^20.0.0");
+    });
+
+    it("should stringify non-string input", () => {
+      expect(common.ckEscape(18)).toBe("18");
+    });
+
+    it("should survive a round trip through chalker's markup parser", () => {
+      // raw ">=18.0.0" gets mangled to "=18.0.0" by chalker's markup parser
+      const rendered = ck.remove(`<green>${common.ckEscape(">=18.0.0")}</>`);
+      expect(rendered).toBe(">=18.0.0");
+
+      // hostile markup in a version spec must render inert, not as color tags
+      const hostile = ck.remove(`<red>${common.ckEscape("<white>boo</white>")}</>`);
+      expect(hostile).toBe("<white>boo</white>");
+    });
+  });
 });
