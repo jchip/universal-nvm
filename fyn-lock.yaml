@@ -4,11 +4,10 @@ $fyn:
 $pkg:
  dep:
   chalker: ^1.2.0
-  extract-zip: ^2.0.1
-  fd-slicer: 'file:./vendor/fd-slicer'
   lodash: ^4.17.20
   needle: ^3.2.0
   nix-clap: ^1.3.12
+  node-stream-zip: ^1.16.0
   semver: ^7.7.3
   tar: ^4.4.10
   xaa: ^1.6.2
@@ -1524,15 +1523,6 @@ $pkg:
  0.0.30:
   $: sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
   _: 'https://registry.npmjs.org/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz'
-'@types/yauzl':
- _latest: 2.10.2
- _:
-  ^2.9.1: 2.10.2
- 2.10.2:
-  $: sha512-Km7XAtUIduROw7QPgvcft0lIupeG8a8rdKL8RiSyKvlE7dYY31fEn41HVuQsRFDuROA8tA4K2UVL+WdfFmErBA==
-  _: 'https://registry.npmjs.org/@types/yauzl/-/yauzl-2.10.2.tgz'
-  dependencies:
-   '@types/node': '*'
 '@vitest/coverage-v8':
  _latest: 4.1.7
  _:
@@ -2352,15 +2342,6 @@ emoji-regex:
  8.0.0:
   $: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==
   _: 'https://registry.npmjs.org/emoji-regex/-/emoji-regex-8.0.0.tgz'
-end-of-stream:
- _latest: 1.4.4
- _:
-  ^1.1.0: 1.4.4
- 1.4.4:
-  $: sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
-  _: 'https://registry.npmjs.org/end-of-stream/-/end-of-stream-1.4.4.tgz'
-  dependencies:
-   once: ^1.4.0
 enhanced-resolve:
  _latest: 5.15.0
  _:
@@ -2507,20 +2488,6 @@ expect-type:
  1.2.2:
   $: sha512-JhFGDVJ7tmDJItKhYgJCGLOWjuK9vPxiXoUFLwLDc99NlmklilbiQJwoctZtt13+xMw91MCk/REan6MWHqDjyA==
   _: 'https://registry.npmjs.org/expect-type/-/expect-type-1.2.2.tgz'
-extract-zip:
- _latest: 2.0.1
- _:
-  ^2.0.1: 2.0.1
- 2.0.1:
-  top: 1
-  $: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==
-  _: 'https://registry.npmjs.org/extract-zip/-/extract-zip-2.0.1.tgz'
-  dependencies:
-   debug: ^4.1.1
-   get-stream: ^5.1.0
-   yauzl: ^2.10.0
-  optionalDependencies:
-   '@types/yauzl': ^2.9.1
 fast-deep-equal:
  _latest: 3.1.3
  _:
@@ -2542,16 +2509,6 @@ fastest-levenshtein:
  1.0.16:
   $: sha512-eRnCtTTtGZFpQCwhJiUOuxPQWRXVKYDn0b2PeHfXL6/Zi53SLAzAHfVhVWK2AryC/WH05kGfxhFIPvTF0SXQzg==
   _: 'https://registry.npmjs.org/fastest-levenshtein/-/fastest-levenshtein-1.0.16.tgz'
-fd-slicer:
- _latest: 1.1.0-fynlocal_h
- _:
-  'file:./vendor/fd-slicer,~1.1.0': 1.1.0-fynlocal_h
- 1.1.0-fynlocal_h:
-  top: 1
-  $: local
-  _: ./vendor/fd-slicer
-  dependencies:
-   pend: ~1.2.0
 fdir:
  _latest: 6.5.0
  _:
@@ -2644,15 +2601,6 @@ gensync:
  1.0.0-beta.2:
   $: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==
   _: 'https://registry.npmjs.org/gensync/-/gensync-1.0.0-beta.2.tgz'
-get-stream:
- _latest: 8.0.1
- _:
-  ^5.1.0: 5.2.0
- 5.2.0:
-  $: sha512-nBF+F1rAZVCu/p7rjzgA+Yb4lfYXrpl7a6VmJrU8wF9I1CKvP/QwPNZHnOlwbTkY6dvtFIzFMSyQXbLoTQPRpA==
-  _: 'https://registry.npmjs.org/get-stream/-/get-stream-5.2.0.tgz'
-  dependencies:
-   pump: ^3.0.0
 get-tsconfig:
  _latest: 4.12.0
  _:
@@ -3259,6 +3207,14 @@ node-releases:
  2.0.13:
   $: sha512-uYr7J37ae/ORWdZeQ1xxMJe3NtdmqMC/JZK+geofDrkLUApKRHPd18/TxtBOJ4A0/+uUIliorNrfYV6s1b02eQ==
   _: 'https://registry.npmjs.org/node-releases/-/node-releases-2.0.13.tgz'
+node-stream-zip:
+ _latest: 1.16.0
+ _:
+  ^1.16.0: 1.16.0
+ 1.16.0:
+  top: 1
+  $: sha512-ObaRrRoR8T68wF6suxHd7R4XQNamij6ZQHrwG7Dx1D2zeHcDNLsIOBcWrIwtDm7AsCXBguaPHgXhcjxDa2szrg==
+  _: 'https://registry.npmjs.org/node-stream-zip/-/node-stream-zip-1.16.0.tgz'
 normalize-package-data:
  _latest: 6.0.0
  _:
@@ -3274,7 +3230,7 @@ normalize-package-data:
 once:
  _latest: 1.4.0
  _:
-  '^1.3.0,^1.3.1,^1.4.0': 1.4.0
+  ^1.3.0: 1.4.0
  1.4.0:
   $: sha1-WDsap3WWHUsROsF9nFC6753Xa9E=
   _: 'https://registry.npmjs.org/once/-/once-1.4.0.tgz'
@@ -3421,13 +3377,6 @@ pathval:
  2.0.1:
   $: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==
   _: 'https://registry.npmjs.org/pathval/-/pathval-2.0.1.tgz'
-pend:
- _latest: 1.2.0
- _:
-  ~1.2.0: 1.2.0
- 1.2.0:
-  $: sha1-elfrVQpng/kRUzH89GY9XI4AelA=
-  _: 'https://registry.npmjs.org/pend/-/pend-1.2.0.tgz'
 picocolors:
  _latest: 1.1.1
  _:
@@ -3476,16 +3425,6 @@ prettier:
   top: 1
   $: sha512-s7PoyDv/II1ObgQunCbB9PdLmUcBZcnWOcxDh7O0N/UwDEsHyqkW+Qh28jW+mVuCdx7gLB0BotYI1Y6uI9iyew==
   _: 'https://registry.npmjs.org/prettier/-/prettier-1.19.1.tgz'
-pump:
- _latest: 3.0.0
- _:
-  ^3.0.0: 3.0.0
- 3.0.0:
-  $: sha512-LwZy+p3SFs1Pytd/jYct4wpv49HiYCqd9Rlc5ZVdk0V+8Yzv6jR5Blk3TRmPL1ft69TxP0IMZGJ+WPFU2BFhww==
-  _: 'https://registry.npmjs.org/pump/-/pump-3.0.0.tgz'
-  dependencies:
-   end-of-stream: ^1.1.0
-   once: ^1.3.1
 punycode:
  _latest: 2.3.0
  _:
@@ -4509,16 +4448,6 @@ yallist:
  3.0.3:
   $: sha512-S+Zk8DEWE6oKpV+vI3qWkaK+jSbIK86pCwe2IF/xwIpQ8jEuxpw9NyaGjmp9+BoJv5FV2piqCDcoCtStppiq2A==
   _: 'https://registry.npmjs.org/yallist/-/yallist-3.0.3.tgz'
-yauzl:
- _latest: 2.10.0
- _:
-  ^2.10.0: 2.10.0
- 2.10.0:
-  $: sha1-x+sXyT4RLLEIb6bY5R+wZnt5pfk=
-  _: 'https://registry.npmjs.org/yauzl/-/yauzl-2.10.0.tgz'
-  dependencies:
-   fd-slicer: ~1.1.0
-   buffer-crc32: ~0.2.3
 yazl:
  _latest: 2.5.1
  _:

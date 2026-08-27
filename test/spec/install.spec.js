@@ -26,6 +26,22 @@ describe("install", () => {
     expect(data).toContain("delete me");
   });
 
+  it("doExtract should reject a zip-slip archive (entry escaping target dir)", async () => {
+    // zip-slip.zip contains '../evil.txt'; the zip source is user-configurable
+    // via NVM_NODEJS_ORG_MIRROR, so traversal entries must never extract
+    const targetPath = await mkdtemp(Path.join(os.tmpdir(), "nvm-zipslip-"));
+    const escapedFile = Path.join(targetPath, "..", "evil.txt");
+    try {
+      await expect(
+        install.doExtract(Path.join(fixtureDir, "zip-slip.zip"), targetPath)
+      ).rejects.toThrow(/entry|path|invalid|malicious/i);
+      await expect(readFile(escapedFile, "utf8")).rejects.toThrow();
+    } finally {
+      await rm(targetPath, { recursive: true, force: true });
+      await rm(escapedFile, { force: true });
+    }
+  });
+
   it("install() returns false when the cached archive is missing", async () => {
     // Regression: install() used to return undefined on failure, so cmdInstall
     // could not tell success from failure and exited 0 on a failed install.
