@@ -4,7 +4,7 @@ param (
     [switch]$test
 )
 
-$nvmVersion = "1.11.1"
+$nvmVersion = "1.12.0"
 $nvmVersionV = "v$nvmVersion"
 $DisableInstallNvmFromTgz = $false
 
