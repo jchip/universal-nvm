@@ -31,6 +31,10 @@ describe('common-win32 utility functions', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    // Spies on shared objects (fs.promises, xaa) outlive the test that made them
+    // otherwise -- the rename block's fs.promises.rename mock leaked into every
+    // later test the moment createEnvironmentTmp started calling rename.
+    vi.restoreAllMocks();
   });
 
   // Previously four empty it.skip stubs blaming "deep mocking of opfs"; opfs is
@@ -320,6 +324,65 @@ describe('common-win32 utility functions', () => {
 
       expect(fs.readFileSync(target, 'utf8')).toBe('SET "CUSTOM=1"\n');
       expect(fs.existsSync(path.join(envDir, 'nvm_env.cmd'))).toBe(false);
+    });
+
+    // The POSIX side has written atomically since b1379ef; the win32 half was
+    // never converted, so the shell could read a half-written script off a
+    // predictable path.
+    describe('atomic write', () => {
+      it('overwrites an existing env file and leaves no temp behind', async () => {
+        const target = path.join(envDir, 'nvm_env.cmd');
+        fs.writeFileSync(target, 'SET "STALE=1"\n');
+
+        await commonWin32.createEnvironmentTmp(target, 'SET "FRESH=1"\n');
+
+        expect(fs.readFileSync(target, 'utf8')).toBe('SET "FRESH=1"\n');
+        expect(fs.readdirSync(envDir).filter(n => n.endsWith('.tmp'))).toEqual([]);
+      });
+
+      it('routes the rename through the EPERM-retrying wrapper', async () => {
+        // A scanner holding a brief handle on the new temp file is the exact
+        // race common-win32.rename retries for, so the atomic write must not
+        // bypass it by calling fs.promises.rename directly.
+        const renameSpy = vi.spyOn(commonWin32, 'rename');
+        const target = path.join(envDir, 'nvm_env.cmd');
+
+        await commonWin32.createEnvironmentTmp(target, 'SET "FRESH=1"\n');
+
+        expect(renameSpy).toHaveBeenCalledTimes(1);
+        const [from, to] = renameSpy.mock.calls[0];
+        expect(from).toMatch(/\.tmp$/);
+        expect(to).toBe(target);
+      });
+
+      it('cleans up the temp file and rethrows when the rename fails', async () => {
+        const target = path.join(envDir, 'nvm_env.cmd');
+        vi.spyOn(commonWin32, 'rename').mockRejectedValue(
+          Object.assign(new Error('EPERM'), { code: 'EPERM' })
+        );
+
+        await expect(
+          commonWin32.createEnvironmentTmp(target, 'SET "FRESH=1"\n')
+        ).rejects.toThrow('EPERM');
+
+        expect(fs.readdirSync(envDir).filter(n => n.endsWith('.tmp'))).toEqual([]);
+        expect(fs.existsSync(target)).toBe(false);
+      });
+
+      it('does not write through a pre-existing file at the temp path', async () => {
+        // "wx" is what makes the temp unhijackable; without it a planted file
+        // would be reused.
+        const target = path.join(envDir, 'nvm_env.cmd');
+        const writeSpy = vi.spyOn(fs.promises, 'writeFile');
+
+        await commonWin32.createEnvironmentTmp(target, 'SET "FRESH=1"\n');
+
+        expect(writeSpy).toHaveBeenCalledWith(
+          expect.stringMatching(/\.tmp$/),
+          'SET "FRESH=1"\n',
+          expect.objectContaining({ flag: 'wx' })
+        );
+      });
     });
   });
 
