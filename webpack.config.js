@@ -49,7 +49,11 @@ const nodeConfig = Object.assign({}, base, {
         use: {
           loader: "babel-loader",
           options: {
-            presets: [["@babel/env", { targets: { node: "26" } }]]
+            // Track the latest LTS, which is what install.sh / install.ps1
+            // provision as the bootstrap node that runs this bundle. Targeting
+            // Current instead would emit syntax newer than the node most users
+            // actually end up with.
+            presets: [["@babel/env", { targets: { node: "24" } }]]
           }
         }
       }

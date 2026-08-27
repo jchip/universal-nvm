@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [26.x]
+        node-version: [24.x]
 
     steps:
       - name: Checkout code
@@ -44,7 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [26.x]
+        node-version: [24.x]
 
     steps:
       - name: Checkout code
@@ -86,7 +86,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '26.x'
+          node-version: '24.x'
 
       - name: Install fyn
         run: npm install -g fyn
@@ -108,7 +108,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '26.x'
+          node-version: '24.x'
 
       - name: Install fyn
         run: npm install -g fyn
@@ -131,7 +131,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '26.x'
+          node-version: '24.x'
 
       - name: Install fyn
         run: npm install -g fyn
@@ -168,7 +168,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '26.x'
+          node-version: '24.x'
 
       - name: Install fyn
         run: npm install -g fyn
@@ -331,7 +331,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '26.x'
+          node-version: '24.x'
 
       - name: Install fyn
         run: npm install -g fyn
