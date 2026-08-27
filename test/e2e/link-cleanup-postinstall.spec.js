@@ -18,8 +18,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
   });
 
   describe('nvm link/unlink', () => {
-    // TODO: These tests require install to work - depends on fixing NVM_HOME isolation
-    it.skip('should link an installed version', async () => {
+    it('should link an installed version', async () => {
       // Install a version first
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
 
@@ -31,7 +30,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
       expect(result.stderr).not.toMatch(/error|fail/i);
     }, 150000);
 
-    it.skip('should show linked version in ls output', async () => {
+    it('should show linked version in ls output', async () => {
       // Install and link a version
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
       await env.runNvmCommand(['link', testVersion.replace('v', '')], { timeout: 10000 });
@@ -43,7 +42,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
       expect(result.stdout).toMatch(/linked/i);
     }, 150000);
 
-    it.skip('should unlink the default version', async () => {
+    it('should unlink the default version', async () => {
       // Install and link a version first
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
       await env.runNvmCommand(['link', testVersion.replace('v', '')], { timeout: 10000 });
@@ -78,7 +77,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
       expect(result.exitCode === 0 || result.exitCode === 1).toBe(true);
     }, 15000);
 
-    it.skip('should not allow linking while using a different version', async () => {
+    it('should not allow linking while using a different version', async () => {
       // Install two versions
       await env.runNvmCommand(['install', '20.10.0'], { timeout: 120000 });
       await env.runNvmCommand(['install', '22.20.0'], { timeout: 120000 });
@@ -111,7 +110,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
       expect(result2.exitCode).toBe(0);
     }, 60000);
 
-    it.skip('should remove cache directory', async () => {
+    it('should remove cache directory', async () => {
       // Install a version to create cache
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
 
@@ -143,7 +142,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
   });
 
   describe('nvm postinstall', () => {
-    it.skip('should run postinstall for installed version', async () => {
+    it('should run postinstall for installed version', async () => {
       // Install a version first
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
 
@@ -154,7 +153,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
       expect(result.stdout).toMatch(/post-install|NVM_INSTALL/i);
     }, 180000);
 
-    it.skip('should run postinstall without version argument when version is active', async () => {
+    it('should run postinstall without version argument when version is active', async () => {
       // Install and use a version
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
       await env.runNvmCommand(['use', testVersion.replace('v', '')], { timeout: 10000 });
@@ -181,8 +180,10 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
     }, 15000);
 
     it('should fail without version when no version is active', async () => {
-      // Ensure no version is active
+      // Ensure no version is active: postinstall falls back to the linked
+      // version (getActiveVersion), so unlink what earlier tests linked too
       await env.runNvmCommand(['stop'], { timeout: 10000 });
+      await env.runNvmCommand(['unlink'], { timeout: 10000 });
 
       // Try to run postinstall without version
       const result = await env.runNvmCommand(['postinstall'], { timeout: 10000 });
@@ -191,7 +192,7 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
       expect(result.stdout || result.stderr).toMatch(/version|provide|unable/i);
     }, 20000);
 
-    it.skip('should create environment script file', async () => {
+    it('should create environment script file', async () => {
       // Install a version
       await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
 
@@ -209,10 +210,11 @@ describe('E2E: nvm link, unlink, cleanup, and postinstall', () => {
   });
 
   describe('Command integration', () => {
-    it.skip('should work together: install -> link -> cleanup -> postinstall -> unlink', async () => {
-      // Install
+    it('should work together: install -> link -> cleanup -> postinstall -> unlink', async () => {
+      // Install (earlier tests in this file may have installed it already)
       const installResult = await env.runNvmCommand(['install', testVersion.replace('v', '')], { timeout: 120000 });
-      expect(installResult.exitCode).toBe(0);
+      const alreadyInstalled = installResult.stdout.includes('already installed');
+      expect(installResult.exitCode === 0 || alreadyInstalled).toBe(true);
 
       // Link
       const linkResult = await env.runNvmCommand(['link', testVersion.replace('v', '')], { timeout: 10000 });

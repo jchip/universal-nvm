@@ -77,8 +77,7 @@ describe('E2E: Installation and Basic Commands', () => {
     }, 35000);
   });
 
-  // TODO: Fix install tests - NVM_HOME environment variable not properly isolated in CI
-  describe.skip('nvm install', () => {
+  describe('nvm install', () => {
     it('should install a specific Node.js version', async () => {
       // Install current LTS version (dynamically fetched)
       const versionWithoutV = ltsVersion.replace(/^v/, '');
@@ -143,7 +142,7 @@ describe('E2E: Installation and Basic Commands', () => {
     }, 150000);
   });
 
-  describe.skip('nvm ls', () => {
+  describe('nvm ls', () => {
     it('should list installed versions', async () => {
       const result = await env.runNvmCommand(['ls'], { timeout: 10000 });
 
@@ -154,13 +153,13 @@ describe('E2E: Installation and Basic Commands', () => {
     }, 15000);
   });
 
-  describe.skip('nvm link', () => {
+  describe('nvm link', () => {
     it('should link a Node.js version as default', async () => {
       const versionWithoutV = ltsVersion.replace(/^v/, '');
       const result = await env.runNvmCommand(['link', versionWithoutV], { timeout: 30000 });
 
+      // link prints nothing on success; the symlink is the observable result
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain(ltsVersion);
 
       // Verify symlink was created
       const linkedVersion = env.getLinkedVersion();
@@ -176,7 +175,7 @@ describe('E2E: Installation and Basic Commands', () => {
     }, 15000);
   });
 
-  describe.skip('nvm unlink', () => {
+  describe('nvm unlink', () => {
     it('should unlink the default version', async () => {
       const result = await env.runNvmCommand(['unlink'], { timeout: 10000 });
 
@@ -188,7 +187,7 @@ describe('E2E: Installation and Basic Commands', () => {
     }, 15000);
   });
 
-  describe.skip('nvm uninstall', () => {
+  describe('nvm uninstall', () => {
     it('should uninstall a Node.js version', async () => {
       // First verify it's installed
       expect(env.isVersionInstalled(ltsVersion)).toBe(true);

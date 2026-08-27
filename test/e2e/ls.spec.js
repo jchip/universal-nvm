@@ -31,8 +31,7 @@ describe('E2E: nvm ls and nvm ls-remote', () => {
       expect(result.stdout.length).toBeGreaterThanOrEqual(0);
     }, 15000);
 
-    // TODO: These tests require install to work - depends on fixing NVM_HOME isolation
-    it.skip('should list installed versions', async () => {
+    it('should list installed versions', async () => {
       // Install a version first
       const version = '20.10.0';
       await env.runNvmCommand(['install', version], { timeout: 120000 });
@@ -44,20 +43,25 @@ describe('E2E: nvm ls and nvm ls-remote', () => {
       expect(result.stdout).toContain('v20.10.0');
     }, 150000);
 
-    it.skip('should mark active version with *', async () => {
+    it('should mark active version with *', async () => {
       // Install and use a version
       const version = '20.10.0';
       await env.runNvmCommand(['install', version], { timeout: 120000 });
       await env.runNvmCommand(['use', version], { timeout: 10000 });
 
-      // List versions
-      const result = await env.runNvmCommand(['ls'], { timeout: 10000 });
+      // `use` exports NVM_USE via the env script it writes for the shell
+      // wrapper to source; a spawned process can't mutate this runner's env,
+      // so pass NVM_USE the way a sourced shell would have it set.
+      const result = await env.runNvmCommand(['ls'], {
+        timeout: 10000,
+        env: { NVM_USE: `v${version}` }
+      });
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toMatch(/\*.*v20\.10\.0/);
     }, 150000);
 
-    it.skip('should mark linked version with (linked)', async () => {
+    it('should mark linked version with (linked)', async () => {
       // Install and link a version
       const version = '20.10.0';
       await env.runNvmCommand(['install', version], { timeout: 120000 });
@@ -70,7 +74,7 @@ describe('E2E: nvm ls and nvm ls-remote', () => {
       expect(result.stdout).toMatch(/v20\.10\.0.*linked/i);
     }, 150000);
 
-    it.skip('should list multiple installed versions', async () => {
+    it('should list multiple installed versions', async () => {
       // Install multiple versions
       await env.runNvmCommand(['install', '18.20.0'], { timeout: 120000 });
       await env.runNvmCommand(['install', '20.10.0'], { timeout: 120000 });

@@ -280,40 +280,39 @@ class E2ETestEnv {
   }
 
   /**
-   * Check if a Node.js version is installed
+   * Check if a Node.js version is installed.
+   * Versions live under NVM_HOME/nodejs/<version> (common.getNodeDir).
    */
   isVersionInstalled(version) {
-    const versionDir = path.join(this.nvmHome, version);
+    const versionDir = path.join(this.nvmHome, 'nodejs', version);
     return fs.existsSync(versionDir);
   }
 
   /**
-   * Get installed versions
+   * Get installed versions from NVM_HOME/nodejs
    */
   getInstalledVersions() {
-    if (!fs.existsSync(this.nvmHome)) {
+    const nodejsDir = path.join(this.nvmHome, 'nodejs');
+    if (!fs.existsSync(nodejsDir)) {
       return [];
     }
 
-    return fs.readdirSync(this.nvmHome)
-      .filter(name => name.startsWith('v') && fs.statSync(path.join(this.nvmHome, name)).isDirectory())
+    return fs.readdirSync(nodejsDir)
+      .filter(name => name.startsWith('v') && fs.statSync(path.join(nodejsDir, name)).isDirectory())
       .sort();
   }
 
   /**
-   * Get the linked version
+   * Get the linked version. The default-version link is the symlink
+   * NVM_HOME/nodejs/bin -> NVM_HOME/nodejs/<version>/bin.
    */
   getLinkedVersion() {
-    const linkPath = path.join(this.nvmHome, 'nodejs');
-
-    if (!fs.existsSync(linkPath)) {
-      return null;
-    }
+    const linkPath = path.join(this.nvmHome, 'nodejs', 'bin');
 
     try {
-      // Read symlink or junction
+      // Read symlink or junction; target is <version>/bin
       const target = fs.readlinkSync(linkPath);
-      return path.basename(target);
+      return path.basename(path.dirname(target));
     } catch (err) {
       return null;
     }

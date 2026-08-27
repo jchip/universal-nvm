@@ -47,8 +47,7 @@ describe('E2E: nvm use and nvm stop', () => {
       expect(result.stdout || result.stderr).toMatch(/not installed|not found/i);
     }, 15000);
 
-    // TODO: These tests require install to work - depends on fixing NVM_HOME isolation
-    it.skip('should use a specific installed version', async () => {
+    it('should use a specific installed version', async () => {
       // First install the version
       const versionWithoutV = testVersion.replace(/^v/, '');
       const installResult = await env.runNvmCommand(['install', versionWithoutV], {
@@ -64,7 +63,7 @@ describe('E2E: nvm use and nvm stop', () => {
       expect(useResult.stdout).toMatch(/now using/i);
     }, 150000);
 
-    it.skip('should handle partial version numbers', async () => {
+    it('should handle partial version numbers', async () => {
       // Use major version only (e.g., "18" instead of "18.20.0")
       const majorVersion = testVersion.split('.')[0].replace('v', '');
       const result = await env.runNvmCommand(['use', majorVersion], { timeout: 10000 });
@@ -73,7 +72,7 @@ describe('E2E: nvm use and nvm stop', () => {
       expect(result.stdout).toContain(testVersion);
     }, 15000);
 
-    it.skip('should update NVM_USE environment variable', async () => {
+    it('should update NVM_USE environment variable', async () => {
       const versionWithoutV = testVersion.replace(/^v/, '');
 
       // Use the version
@@ -88,7 +87,7 @@ describe('E2E: nvm use and nvm stop', () => {
       }
     }, 15000);
 
-    it.skip('should allow running node commands after use', async () => {
+    it('should allow running node commands after use', async () => {
       const versionWithoutV = testVersion.replace(/^v/, '');
 
       // Use the version
@@ -120,8 +119,7 @@ describe('E2E: nvm use and nvm stop', () => {
       expect(result.exitCode === 0 || result.exitCode === 1).toBe(true);
     }, 15000);
 
-    // TODO: These tests require install to work - depends on fixing NVM_HOME isolation
-    it.skip('should clear NVM_USE environment variable', async () => {
+    it('should clear NVM_USE environment variable', async () => {
       // First use a version
       const versionWithoutV = testVersion.replace(/^v/, '');
       await env.runNvmCommand(['use', versionWithoutV], { timeout: 10000 });
@@ -139,7 +137,7 @@ describe('E2E: nvm use and nvm stop', () => {
       }
     }, 20000);
 
-    it.skip('should remove nvm paths from PATH', async () => {
+    it('should remove nvm paths from PATH', async () => {
       // First use a version
       const versionWithoutV = testVersion.replace(/^v/, '');
       await env.runNvmCommand(['use', versionWithoutV], { timeout: 10000 });
@@ -157,7 +155,7 @@ describe('E2E: nvm use and nvm stop', () => {
       }
     }, 20000);
 
-    it.skip('should restore environment to pre-nvm state', async () => {
+    it('should restore environment to pre-nvm state', async () => {
       // First use a version
       const versionWithoutV = testVersion.replace(/^v/, '');
       await env.runNvmCommand(['use', versionWithoutV], { timeout: 10000 });
@@ -165,13 +163,19 @@ describe('E2E: nvm use and nvm stop', () => {
       // Then stop
       const stopResult = await env.runNvmCommand(['stop'], { timeout: 10000 });
       expect(stopResult.exitCode).toBe(0);
-      expect(stopResult.stdout || '').toMatch(/undo|deactivat|stop/i);
+
+      // stop prints nothing on success; the restored environment is what it
+      // writes to the env script for the shell wrapper to source
+      const envFile = env.getEnvFilePath();
+      if (fs.existsSync(envFile)) {
+        const envContent = fs.readFileSync(envFile, 'utf8');
+        expect(envContent).toContain("NVM_USE=''");
+      }
     }, 20000);
   });
 
   describe('nvm use workflow', () => {
-    // TODO: This test requires install to work - depends on fixing NVM_HOME isolation
-    it.skip('should allow switching between versions', async () => {
+    it('should allow switching between versions', async () => {
       // Install two versions
       const version1 = testVersion;
       const response = await fetch('https://nodejs.org/dist/index.json');
@@ -389,8 +393,7 @@ describe('E2E: nvm use and nvm stop', () => {
       }
     }, 15000);
 
-    it.skip('should resolve semver range from package.json engines.node', async () => {
-      // This test requires installed versions - skip for now
+    it('should resolve semver range from package.json engines.node', async () => {
       const packageJsonPath = path.join(env.nvmHome, 'package.json');
 
       // Create package.json with semver range
@@ -409,8 +412,9 @@ describe('E2E: nvm use and nvm stop', () => {
         });
 
         // Should resolve to highest matching version
+        // (auto-use path prints "Universal NVM: Using node vX.Y.Z")
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toMatch(/found.*matching|now using/i);
+        expect(result.stdout).toMatch(/using node|now using/i);
       } finally {
         if (fs.existsSync(packageJsonPath)) {
           fs.unlinkSync(packageJsonPath);
