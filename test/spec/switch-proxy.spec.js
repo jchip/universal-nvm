@@ -82,4 +82,80 @@ describe('switch (nvm link) network options', () => {
 
     expect(getRemote).not.toHaveBeenCalled();
   });
+
+  // UNV-12: the fetch failure used to be reported as a bare "Unable to fetch
+  // remote versions", so a proxy 407, an ETIMEDOUT and a self-signed cert were
+  // indistinguishable -- which is what made UNV-11 hard to diagnose in the first
+  // place.
+  describe('when the remote fetch fails', () => {
+    const logged = () =>
+      common.log.mock.calls.map(c => c.join(' ')).join('\n');
+
+    it('reports the underlying cause', async () => {
+      getRemote.mockRejectedValue(new Error('connect ETIMEDOUT 104.20.22.46:443'));
+
+      await expect(switchVersion('lts')).rejects.toThrow('common.exit called');
+
+      expect(logged()).toContain('connect ETIMEDOUT 104.20.22.46:443');
+    });
+
+    it('suggests proxy settings for a connection-level failure when no proxy is set', async () => {
+      getRemote.mockRejectedValue(
+        Object.assign(new Error('connect ECONNREFUSED 10.0.0.1:8080'), { code: 'ECONNREFUSED' })
+      );
+
+      await expect(switchVersion('lts')).rejects.toThrow('common.exit called');
+
+      expect(logged()).toMatch(/NVM_PROXY/);
+    });
+
+    it('does not suggest a proxy when one is already in use', async () => {
+      getRemote.mockRejectedValue(new Error('tunneling socket could not be established, 407'));
+
+      await expect(
+        switchVersion('lts', { proxy: 'http://proxy.corp:8080' })
+      ).rejects.toThrow('common.exit called');
+
+      const out = logged();
+      expect(out).toContain('407');
+      expect(out).not.toMatch(/NVM_PROXY/);
+    });
+
+    it('does not blame the network for a non-network failure', async () => {
+      getRemote.mockRejectedValue(new Error('Unexpected token < in JSON at position 0'));
+
+      await expect(switchVersion('lts')).rejects.toThrow('common.exit called');
+
+      const out = logged();
+      expect(out).toContain('Unexpected token');
+      expect(out).not.toMatch(/NVM_PROXY/);
+    });
+
+    // chalker parses <> as color markup, so an unescaped message loses content:
+    // "<html>" would be swallowed as a tag and ">=proxy" would render as
+    // "=proxy". ckEscape encodes it so chalker decodes it back intact -- the same
+    // class of bug UNV-4 fixed elsewhere.
+    it('preserves markup characters in the error message instead of eating them', async () => {
+      getRemote.mockRejectedValue(new Error('bad response <html> from >=proxy'));
+
+      await expect(switchVersion('lts')).rejects.toThrow('common.exit called');
+
+      const out = logged();
+      expect(out).toContain('<html>');
+      expect(out).toContain('>=proxy');
+    });
+  });
+
+  // The no-LTS-installed path shares the lts branch but is not a fetch failure;
+  // it must not be reported as one. This is why the try wraps only the fetch.
+  it('reports "no LTS installed" as itself, not as a fetch failure', async () => {
+    // remote list has no overlap with what is installed locally
+    getRemote.mockResolvedValue(['v20.11.0']);
+
+    await expect(switchVersion('lts')).rejects.toThrow('common.exit called');
+
+    const out = common.log.mock.calls.map(c => c.join(' ')).join('\n');
+    expect(out).toContain('No LTS versions installed');
+    expect(out).not.toContain('Unable to fetch remote versions');
+  });
 });
