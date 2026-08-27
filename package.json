@@ -23,7 +23,7 @@
     "coverage": "vitest run --coverage"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.com/",
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "prettier": {

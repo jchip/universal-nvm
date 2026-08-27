@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-const mockXaa = {
-  delay: vi.fn()
-};
-
-vi.mock('xaa', () => mockXaa);
-
+// NOTE: do not reintroduce vi.mock('xaa', ...) here. It does not intercept the
+// CJS `require("xaa")` inside lib/common-win32.js -- the real module is used and
+// the mock's delay is never called, so the retry tests silently slept through
+// real 50ms backoffs while asserting nothing. The rename block spies on the
+// actual module instead: vi.spyOn(require('xaa'), 'delay').
 const os = require('os');
 const path = require('path');
 
@@ -24,9 +23,6 @@ describe('common-win32 utility functions', () => {
     commonWin32._exists = vi.fn();
     commonWin32.getTmpdir = vi.fn(() => 'C:\\Temp');
     commonWin32.getEnvFile = vi.fn((ext) => `nvm_env${ext}`);
-
-    // Reset mocks
-    mockXaa.delay.mockClear();
   });
 
   afterEach(() => {
