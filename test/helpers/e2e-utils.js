@@ -12,6 +12,13 @@ const isWindows = process.platform === 'win32';
 class E2ETestEnv {
   constructor(options = {}) {
     this.testId = `nvm-e2e-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    // nvm names its env script nvm_env${NVM_RUN_ID}. With NVM_RUN_ID unset every
+    // spec file writes and reads the SAME $TMPDIR/nvm_env.sh, so specs running in
+    // parallel clobber each other's env script -- one file's `nvm stop` would
+    // blank out the NVM_USE another file had just asserted on. Give each test env
+    // its own run id so the scripts never collide, whatever the runner's
+    // scheduling happens to be.
+    this.runId = `-${this.testId}`;
     this.nvmHome = options.nvmHome || path.join(os.tmpdir(), this.testId);
     this.nvmLink = path.join(this.nvmHome, 'nodejs', 'bin');
     this.projectRoot = path.resolve(__dirname, '../..');
@@ -69,6 +76,7 @@ class E2ETestEnv {
       ...process.env,
       NVM_HOME: this.nvmHome,
       NVM_LINK: this.nvmLink,
+      NVM_RUN_ID: this.runId,
       ...options.env
     };
 
@@ -204,6 +212,7 @@ class E2ETestEnv {
       ...process.env,
       NVM_HOME: this.nvmHome,
       NVM_LINK: this.nvmLink,
+      NVM_RUN_ID: this.runId,
       ...options.env
     };
 
@@ -327,8 +336,10 @@ class E2ETestEnv {
   getEnvFilePath() {
     const tmpDir = os.tmpdir();
     const ext = isWindows ? '.cmd' : '.sh';
-    const runId = process.env.NVM_RUN_ID || '';
-    return path.join(tmpDir, `nvm_env${runId}${ext}`);
+    // this.runId, not process.env.NVM_RUN_ID: the run id is set on the child's
+    // environment, not this process's, so reading it here would resolve to the
+    // shared nvm_env script every spec file collides on.
+    return path.join(tmpDir, `nvm_env${this.runId}${ext}`);
   }
 }
 
