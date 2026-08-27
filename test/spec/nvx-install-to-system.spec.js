@@ -7,6 +7,12 @@ import path from 'path';
 const projectRoot = path.resolve(__dirname, '../..');
 const nvx = path.join(projectRoot, 'bin', 'nvx');
 
+// Everything here is POSIX-only: bin/nvx is a bash script, and the branch under
+// test writes /etc/environment, which the script serves on Darwin/Linux only
+// (Windows goes through nvx.cmd / nvx.ps1). Under Git Bash on Windows the paths
+// come back MSYS-style and the comparisons are meaningless.
+const onPosix = process.platform === 'win32' ? it.skip : it;
+
 // UNV-10. The --install-to-system branch itself writes /etc/environment and
 // needs root, so it is not executed here; ENV_FILE is deliberately NOT made
 // overridable, since an env var steering a sudo write is a worse problem than
@@ -35,7 +41,7 @@ describe('nvx --install-to-system prerequisites', () => {
       return { status: r.status, content: fs.readFileSync(out, 'utf8') };
     };
 
-    it('exits 1 with empty output when the file holds only a PATH line', () => {
+    onPosix('exits 1 with empty output when the file holds only a PATH line', () => {
       const envFile = path.join(tmpDir, 'environment');
       fs.writeFileSync(envFile, 'PATH="/usr/local/bin:/usr/bin:/bin"\n');
 
@@ -46,7 +52,7 @@ describe('nvx --install-to-system prerequisites', () => {
       expect(content).toBe('');
     });
 
-    it('exits 0 and keeps non-PATH lines when the file has other content', () => {
+    onPosix('exits 0 and keeps non-PATH lines when the file has other content', () => {
       const envFile = path.join(tmpDir, 'environment');
       fs.writeFileSync(envFile, 'LANG=en_US.UTF-8\nPATH="/usr/bin:/bin"\nEDITOR=vi\n');
 
@@ -57,7 +63,7 @@ describe('nvx --install-to-system prerequisites', () => {
     });
   });
 
-  it('nvx parses and sources the symlink helper without error', () => {
+  onPosix('nvx parses and sources the symlink helper without error', () => {
     // bash -n catches syntax errors introduced in the sourcing block; running
     // --help exercises the source itself.
     execFileSync('bash', ['-n', nvx]);
@@ -66,7 +72,7 @@ describe('nvx --install-to-system prerequisites', () => {
     expect(out).toContain('--install-to-system');
   });
 
-  it('nvx exposes resolve_link_target after sourcing, resolving a dangling link', () => {
+  onPosix('nvx exposes resolve_link_target after sourcing, resolving a dangling link', () => {
     const real = path.join(tmpDir, 'environment.real');
     const link = path.join(tmpDir, 'environment');
     fs.symlinkSync(real, link); // dangling: target not created

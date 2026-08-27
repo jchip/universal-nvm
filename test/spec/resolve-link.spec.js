@@ -10,6 +10,19 @@ const projectRoot = path.resolve(__dirname, '../..');
 const resolveLinkSh = path.join(projectRoot, 'bin', 'resolve-link.sh');
 const casesFile = path.join(projectRoot, 'test', 'fixtures', 'link-cases.txt');
 
+const isWindows = process.platform === 'win32';
+
+// The bash twin exists solely for bin/nvx, whose only caller of it --
+// `nvx --install-to-system` writing /etc/environment -- is Darwin/Linux only
+// (Windows goes through nvx.cmd / nvx.ps1). Running it under Git Bash on
+// Windows also makes a string comparison against the JS side meaningless: bash
+// reports MSYS paths (/c/Users/...) while node reports Win32 (C:\Users\...).
+const onPosix = isWindows ? it.skip : it;
+
+// The fixture writes expectations with "/" separators; on Windows the JS
+// resolver returns "\". Compare on the platform's own form.
+const expectedPath = (expected, tmpDir) => path.normalize(expected.replace('$T', tmpDir));
+
 // One table, both implementations. See test/fixtures/link-cases.txt.
 function loadCases() {
   return fs
@@ -78,10 +91,10 @@ describe('symlink resolution contract (bin/resolve-link.js and bin/resolve-link.
         return;
       }
 
-      expect(resolveLinkTarget(input)).toBe(c.expected.replace('$T', tmpDir));
+      expect(resolveLinkTarget(input)).toBe(expectedPath(c.expected, tmpDir));
     });
 
-    it(`sh: ${c.name}`, () => {
+    onPosix(`sh: ${c.name}`, () => {
       applySetup(tmpDir, c.setup);
       const input = path.join(tmpDir, c.input);
 
@@ -90,20 +103,30 @@ describe('symlink resolution contract (bin/resolve-link.js and bin/resolve-link.
         return;
       }
 
-      expect(runBash(input)).toBe(c.expected.replace('$T', tmpDir));
+      expect(runBash(input)).toBe(expectedPath(c.expected, tmpDir));
     });
   }
 
   // Depth is part of the contract too: the twins must give up at the same place,
   // so a chain that is legal for one is not an ELOOP for the other.
-  it('both implementations accept a chain just under the depth limit', () => {
+  it('js: accepts a chain just under the depth limit', () => {
+    buildDeepChain();
+    const deepest = path.join(tmpDir, `link${MAX_LINK_DEPTH - 1}`);
+
+    expect(resolveLinkTarget(deepest)).toBe(path.join(tmpDir, 'link0'));
+  });
+
+  onPosix('sh: accepts a chain just under the depth limit', () => {
+    buildDeepChain();
+    const deepest = path.join(tmpDir, `link${MAX_LINK_DEPTH - 1}`);
+
+    expect(runBash(deepest)).toBe(path.join(tmpDir, 'link0'));
+  });
+
+  function buildDeepChain() {
     fs.writeFileSync(path.join(tmpDir, 'link0'), 'contents\n');
     for (let i = 1; i < MAX_LINK_DEPTH; i++) {
       fs.symlinkSync(path.join(tmpDir, `link${i - 1}`), path.join(tmpDir, `link${i}`));
     }
-    const deepest = path.join(tmpDir, `link${MAX_LINK_DEPTH - 1}`);
-
-    expect(resolveLinkTarget(deepest)).toBe(path.join(tmpDir, 'link0'));
-    expect(runBash(deepest)).toBe(path.join(tmpDir, 'link0'));
-  });
+  }
 });

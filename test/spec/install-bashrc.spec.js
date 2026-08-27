@@ -12,6 +12,14 @@ const END = `# NVM ${shellName} initialize END - do not modify #`;
 const countBegins = s => (s.match(/initialize BEGIN/g) || []).length;
 const countEnds = s => (s.match(/initialize END/g) || []).length;
 
+// Windows has no Unix permission bits -- chmod(0o600) reads back as 0o666 -- so
+// carrying the mode over is a POSIX-only guarantee. The rest of each such test
+// (content, link preserved) still runs everywhere; only the mode check is gated.
+const expectModePreserved = (file, mode) => {
+  if (process.platform === 'win32') return;
+  expect(fs.statSync(file).mode & 0o777).toBe(mode);
+};
+
 describe('install_bashrc updateShellProfile', () => {
   let tmpDir;
 
@@ -128,7 +136,7 @@ describe('install_bashrc updateShellProfile', () => {
 
     updateShellProfile(f);
 
-    expect(fs.statSync(f).mode & 0o777).toBe(0o600);
+    expectModePreserved(f, 0o600);
     expect(fs.readFileSync(f, 'utf8')).toContain('export FOO=1');
   });
 
@@ -190,7 +198,7 @@ describe('install_bashrc updateShellProfile', () => {
 
       updateShellProfile(link);
 
-      expect(fs.statSync(real).mode & 0o777).toBe(0o600);
+      expectModePreserved(real, 0o600);
     });
 
     it('leaves no temp file beside a symlinked profile', () => {

@@ -230,8 +230,11 @@ describe('common-posix utility functions', () => {
       const out = fs.readFileSync(target, 'utf8');
       expect(out).toContain(`export NVM_USE='/nvm/v20.10.0/bin'`);
       expect(out).toContain(`export PATH='/nvm/v20.10.0/bin:/usr/bin'`);
-      // the script is sourced by the shell, so it is written owner-only
-      expect(fs.statSync(target).mode & 0o777).toBe(0o600);
+      // The script is sourced by the shell, so it is written owner-only. Windows
+      // has no Unix mode bits (it reads back 0o666), so this half is POSIX-only.
+      if (process.platform !== 'win32') {
+        expect(fs.statSync(target).mode & 0o777).toBe(0o600);
+      }
     });
 
     it('should use custom content when provided', async () => {
