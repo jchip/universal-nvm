@@ -3,6 +3,15 @@
 # nvx - Execute commands with local node_modules/.bin in PATH
 # NOTE: This script must be compatible with bash 3.2 (macOS default)
 
+# Symlink resolution shared (by contract, not by code -- see the header there)
+# with bin/resolve-link.js. Sourced rather than inlined so the test suite can
+# drive the same function bin/nvx uses. Missing file is not fatal: only
+# --install-to-system needs it, and it falls back to writing through the path.
+NVX_SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+if [ -f "$NVX_SCRIPT_DIR/resolve-link.sh" ]; then
+  . "$NVX_SCRIPT_DIR/resolve-link.sh"
+fi
+
 # Helper function to show help text
 show_help() {
   cat << EOF
@@ -244,8 +253,15 @@ if [ "$1" = "--install-to-system" ]; then
       NEW_PATH_LINE="PATH=\"$NVM_BIN_PATH:$CURRENT_PATH\""
     fi
 
+    # /etc/environment is sometimes a symlink into a config-management tree. The
+    # old in-place `cat >` wrote through it; the atomic `mv -f` below would
+    # replace the LINK with a regular file instead, so resolve to the real file
+    # first and do all the work there. A link we cannot resolve (a cycle, or the
+    # helper missing) falls back to the path as given.
+    REAL_ENV_FILE="$(resolve_link_target "$ENV_FILE" 2>/dev/null)" || REAL_ENV_FILE="$ENV_FILE"
+
     # Need write access to do the atomic replace; otherwise tell the user to sudo
-    if [ ! -w "$(dirname "$ENV_FILE")" ] || [ ! -w "$ENV_FILE" ]; then
+    if [ ! -w "$(dirname "$REAL_ENV_FILE")" ] || [ ! -w "$REAL_ENV_FILE" ]; then
       echo "Error: Permission denied writing to $ENV_FILE" >&2
       echo "" >&2
       echo "Please run this command with sudo:" >&2
@@ -256,11 +272,18 @@ if [ "$1" = "--install-to-system" ]; then
     # Build the new content in a temp file in the SAME directory, preserve the
     # original mode, then atomically rename over it. This avoids a truncated or
     # half-written /etc/environment if the process is interrupted mid-write.
-    TMP_FILE=$(mktemp "${ENV_FILE}.unvm.XXXXXX" 2>/dev/null) || TMP_FILE="${ENV_FILE}.unvm.$$"
+    TMP_FILE=$(mktemp "${REAL_ENV_FILE}.unvm.XXXXXX" 2>/dev/null) || TMP_FILE="${REAL_ENV_FILE}.unvm.$$"
 
-    if grep -v -E '^PATH=' "$ENV_FILE" > "$TMP_FILE" 2>/dev/null && echo "$NEW_PATH_LINE" >> "$TMP_FILE" 2>/dev/null; then
-      chmod --reference="$ENV_FILE" "$TMP_FILE" 2>/dev/null || chmod 644 "$TMP_FILE" 2>/dev/null
-      if mv -f "$TMP_FILE" "$ENV_FILE" 2>/dev/null; then
+    # grep exits 1 when it selects no lines, which is exactly what a stock
+    # /etc/environment holding nothing but a PATH= line produces -- the normal
+    # outcome here, since dropping that line is the point. Only status >= 2 (a
+    # real grep error) means the copy failed, so don't let 1 abort the chain.
+    grep -v -E '^PATH=' "$ENV_FILE" > "$TMP_FILE" 2>/dev/null
+    GREP_STATUS=$?
+
+    if [ "$GREP_STATUS" -le 1 ] && echo "$NEW_PATH_LINE" >> "$TMP_FILE" 2>/dev/null; then
+      chmod --reference="$REAL_ENV_FILE" "$TMP_FILE" 2>/dev/null || chmod 644 "$TMP_FILE" 2>/dev/null
+      if mv -f "$TMP_FILE" "$REAL_ENV_FILE" 2>/dev/null; then
         echo "Successfully installed to system PATH"
         echo "Added $NVM_BIN_PATH to $ENV_FILE"
         echo "You may need to log out and log back in for changes to take effect"
