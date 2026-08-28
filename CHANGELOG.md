@@ -1,3 +1,30 @@
+## 1.12.1 Aug 27, 2026
+
+- chore: upgrade `tar` 4.4.10 -> 7.5.22, clearing 18 security advisories
+- chore: upgrade remaining runtime deps (`needle`, `semver`, `node-stream-zip`, `nix-clap`) to latest
+- chore: upgrade dev toolchain to babel 8, babel-loader 10, webpack-cli 7, vitest 4, prettier 3
+- fix: point `publishConfig.registry` at registry.npmjs.org
+
+## 1.12.0 Aug 27, 2026
+
+- feat: add `nvx` PATH fallthrough and `local-install` task for local testing
+- feat: add `check-dist` guard and CI job catching a stale `dist/` bundle
+- fix: shell injection in auto-use env scripts from untrusted version files
+- fix: Windows `init-env.cmd` wiping and truncating the user PATH
+- fix: Windows arm64 downloading the x86 Node build instead of win-arm64
+- fix: `nvm install` exiting 0 when the download or extract fails
+- fix: `nvm link`/`unlink` leaving or tripping on a dangling default-version symlink
+- fix: `nvx.cmd` stripping `!` from arguments and looping past the drive root
+- fix: bad `NVM_NODEJS_ORG_MIRROR` entry crashing `ls-remote` and install fetch
+- fix: write shell profiles and Windows env scripts atomically
+- fix: filter needle's DEP0169 `url.parse` warning, leaving other warnings intact
+- chore: modernize Node APIs (WHATWG URL, native fs), drop `opfs`/`mkdirp`/`rimraf`/`extract-zip`
+
+## 1.11.1 Nov 25, 2025
+
+- feat: `nvx` searches up the directory tree for `node_modules/.bin`
+- chore: migrate defaults to `.unvm` and derive `NVM_LINK` from `NVM_HOME`
+
 ## 1.11.0 Nov 1, 2025
 
 - feat: `nvm link lts` and `nvm link latest` support
